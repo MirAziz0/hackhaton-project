@@ -18,7 +18,7 @@ import {
 import { LanguageSwitch } from "@/components/i18n/language-switch";
 import { LandingBackground } from "@/components/landing/landing-background";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { LogoMark } from "@/components/layout/logo";
+import { BrandName, LogoMark } from "@/components/layout/logo";
 import { APP_NAME } from "@/lib/constants";
 import { getT } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
@@ -62,7 +62,9 @@ export async function LandingPage() {
         <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2.5 pl-3 pr-2.5">
         <Link href="/" className="flex items-center gap-2.5" aria-label={APP_NAME}>
           <LogoMark />
-          <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
+          <span className="text-xl font-semibold tracking-tight">
+            <BrandName dark />
+          </span>
         </Link>
 
         <LandingNav />

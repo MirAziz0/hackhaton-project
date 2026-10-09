@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { LogoMark } from "@/components/layout/logo";
+import { BrandName, LogoMark } from "@/components/layout/logo";
 import { AuthBackdrop } from "@/components/auth/auth-backdrop";
 import { LanguageSwitch } from "@/components/i18n/language-switch";
 import { APP_NAME } from "@/lib/constants";
@@ -57,7 +57,9 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <div className="flex flex-col px-6 py-8 sm:px-12 lg:px-16 lg:py-10">
           <Link href="/" className="mx-auto flex items-center gap-2 text-foreground" aria-label={t("{app} ana səhifə", { app: APP_NAME })}>
             <LogoMark className="size-9" />
-            <span className="text-lg font-semibold tracking-tight">{APP_NAME}</span>
+            <span className="text-lg font-semibold tracking-tight">
+              <BrandName />
+            </span>
           </Link>
           {children}
         </div>
