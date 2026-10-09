@@ -4,7 +4,7 @@ import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { homeForStage } from "@/lib/constants";
 import { getSessionProfile } from "@/lib/supabase/server";
 
-export const metadata = { title: "Başlayaq — LaunchLens AI" };
+export const metadata = { title: "Başlayaq — Growenta" };
 
 export default async function OnboardingPage() {
   const { user, profile } = await getSessionProfile();

@@ -1,4 +1,4 @@
--- LaunchLens AI: removes the app's tables so 0001_init.sql can recreate them cleanly.
+-- Growenta: removes the app's tables so 0001_init.sql can recreate them cleanly.
 -- WARNING: this deletes ALL data in these six tables. Only use it on a fresh/demo project.
 -- Run this, then 0001_init.sql, then seed.sql.
 

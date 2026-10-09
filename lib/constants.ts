@@ -1,6 +1,6 @@
 import type { LookingFor, Stage, Track } from "@/types/database";
 
-export const APP_NAME = "LaunchLens AI";
+export const APP_NAME = "Growenta";
 
 export const TRACKS: { value: Track; label: string; description: string }[] = [
   { value: "cosmetics", label: "Kosmetika", description: "Gözəllik və baxım məhsulları" },

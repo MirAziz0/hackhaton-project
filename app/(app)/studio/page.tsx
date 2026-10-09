@@ -4,7 +4,7 @@ import { StudioWorkspace } from "@/components/studio/studio-workspace";
 import { getAuth } from "@/lib/supabase/server";
 import type { Business } from "@/types/database";
 
-export const metadata = { title: "Studiya — LaunchLens AI" };
+export const metadata = { title: "Studiya — Growenta" };
 
 export default async function StudioPage() {
   const { supabase, user } = await getAuth();

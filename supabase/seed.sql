@@ -1,4 +1,4 @@
--- LaunchLens AI: demo seed data.
+-- Growenta: demo seed data.
 -- Run in the Supabase SQL editor AFTER supabase/migrations/0001_init.sql. Safe to re-run.
 --
 -- Demo login:  demo@launchlens.az  /  demo12345

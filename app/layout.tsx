@@ -15,8 +15,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "LaunchLens AI",
-  description: "İdeyadan işlək biznesə qədər süni intellekt dəstəyi",
+  title: "Growenta",
+  description: "Growenta — süni intellektli biznes tərəfdaşınız: ideyadan işlək biznesə qədər",
 };
 
 export default function RootLayout({

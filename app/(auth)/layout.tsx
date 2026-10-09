@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowLeft, Rocket } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { LogoMark } from "@/components/layout/logo";
 import { AuthBackdrop } from "@/components/auth/auth-backdrop";
 import { APP_NAME } from "@/lib/constants";
 
@@ -47,7 +48,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <div className="flex flex-col px-6 py-8 sm:px-12 lg:px-16 lg:py-10">
           <Link href="/" className="mx-auto flex items-center gap-2 text-foreground" aria-label={`${APP_NAME} ana səhifə`}>
-            <Rocket className="size-5" />
+            <LogoMark className="size-8 rounded-[24%]" />
             <span className="text-lg font-semibold tracking-tight">{APP_NAME}</span>
           </Link>
           {children}

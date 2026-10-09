@@ -1,4 +1,4 @@
--- LaunchLens AI: initial schema, RLS policies, storage buckets and realtime.
+-- Growenta: initial schema, RLS policies, storage buckets and realtime.
 -- Run once in the Supabase SQL editor (or via `supabase db push`). Safe to re-run.
 
 -- ---------------------------------------------------------------------------

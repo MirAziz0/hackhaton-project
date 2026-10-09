@@ -11,7 +11,7 @@ import { getAuth } from "@/lib/supabase/server";
 import { initials } from "@/lib/utils";
 import type { Branding, Profile } from "@/types/database";
 
-export const metadata = { title: "Profil — LaunchLens AI" };
+export const metadata = { title: "Profil — Growenta" };
 
 interface BusinessCard {
   id: string;

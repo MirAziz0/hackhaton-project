@@ -1,4 +1,4 @@
-# LaunchLens AI
+# Growenta
 
 A web platform that guides an entrepreneur from a raw business idea to a running business, with AI at every step. Built for the "AI Enterprise Solutions" hackathon track. The UI is in Azerbaijani; code and comments are in English.
 

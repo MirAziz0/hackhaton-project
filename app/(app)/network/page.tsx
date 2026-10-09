@@ -4,7 +4,7 @@ import { NetworkClient } from "@/components/network/network-client";
 import { PUBLIC_PROFILE_COLUMNS, type PublicProfile } from "@/lib/network";
 import { getAuth } from "@/lib/supabase/server";
 
-export const metadata = { title: "Şəbəkə — LaunchLens AI" };
+export const metadata = { title: "Şəbəkə — Growenta" };
 
 export default async function NetworkPage() {
   const { supabase, user } = await getAuth();

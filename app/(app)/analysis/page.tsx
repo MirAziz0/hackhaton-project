@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { getAuth, getSessionProfile } from "@/lib/supabase/server";
 import type { Analysis } from "@/types/analysis";
 
-export const metadata = { title: "Analiz — LaunchLens AI" };
+export const metadata = { title: "Analiz — Growenta" };
 
 export default async function AnalysisPage({
   searchParams,

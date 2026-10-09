@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { LandingBackground } from "@/components/landing/landing-background";
 import { LandingNav } from "@/components/landing/landing-nav";
+import { LogoMark } from "@/components/layout/logo";
 import { APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -57,9 +58,7 @@ export function LandingPage() {
       <header className="sticky top-4 z-40 px-4 lg:px-10">
         <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2.5 pl-3 pr-2.5">
         <Link href="/" className="flex items-center gap-2.5" aria-label={APP_NAME}>
-          <span className="bg-brand flex size-10 items-center justify-center rounded-full">
-            <Rocket className="size-5" />
-          </span>
+          <LogoMark className="rounded-[24%]" />
           <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
         </Link>
 
@@ -193,7 +192,7 @@ export function LandingPage() {
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-sm text-white/60 lg:px-10">
           <span>© 2026 {APP_NAME}</span>
-          <span>İdeyadan işlək biznesə qədər süni intellekt dəstəyi</span>
+          <span>Süni intellektli biznes tərəfdaşınız</span>
         </div>
       </footer>
     </div>

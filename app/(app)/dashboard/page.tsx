@@ -9,7 +9,7 @@ import { todayInBaku } from "@/lib/dates";
 import { getAuth, getSessionProfile } from "@/lib/supabase/server";
 import type { FinancialForecast, Transaction } from "@/types/database";
 
-export const metadata = { title: "Dashboard — LaunchLens AI" };
+export const metadata = { title: "Dashboard — Growenta" };
 
 interface BusinessRow {
   id: string;
