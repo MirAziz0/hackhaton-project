@@ -3,16 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, PlayCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Loader2, PlayCircle } from "lucide-react";
 import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "register";
 
 const GENERIC_ERROR = "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.";
+
+const FIELD =
+  "h-12 w-full rounded-[10px] border border-transparent bg-[#f4f5f9] px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-foreground/30 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-foreground/10 disabled:opacity-60";
+const LABEL = "text-sm font-medium text-foreground";
+const BUTTON =
+  "flex h-12 w-full items-center justify-center gap-2 rounded-[10px] text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 [&_svg]:size-4";
 
 function translateError(message: string) {
   const text = message.toLowerCase();
@@ -28,6 +31,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState<"form" | "demo" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,93 +89,112 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          {isLogin ? "Xoş gəlmisiniz" : "Hesab yaradın"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {isLogin
-            ? "Davam etmək üçün hesabınıza daxil olun."
-            : "Bir neçə saniyəyə qeydiyyatdan keçin və başlayın."}
-        </p>
-      </div>
+    <div className="flex flex-1 flex-col">
+      <div className="mx-auto my-auto w-full max-w-sm py-10">
+        <div className="space-y-3 text-center">
+          <h2 className="font-display text-5xl leading-tight tracking-tight text-foreground">
+            {isLogin ? "Xoş gəlmisiniz" : "Hesab yaradın"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {isLogin
+              ? "Hesabınıza daxil olmaq üçün e-poçt və şifrənizi yazın"
+              : "Bir dəqiqəyə qeydiyyatdan keçin və ideyanızı plana çevirin"}
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {!isLogin && (
+        <form onSubmit={handleSubmit} className="mt-9 space-y-5">
+          {!isLogin && (
+            <div className="space-y-2">
+              <label htmlFor="fullName" className={LABEL}>
+                Ad və soyad
+              </label>
+              <input
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Adınızı və soyadınızı yazın"
+                autoComplete="name"
+                minLength={2}
+                required
+                className={FIELD}
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="fullName">Ad və soyad</Label>
-            <Input
-              id="fullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Aysel Məmmədova"
-              autoComplete="name"
-              minLength={2}
+            <label htmlFor="email" className={LABEL}>
+              E-poçt
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="E-poçt ünvanınızı yazın"
+              autoComplete="email"
               required
+              className={FIELD}
             />
           </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="email">E-poçt</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="siz@example.com"
-            autoComplete="email"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Şifrə</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Ən azı 6 simvol"
-            autoComplete={isLogin ? "current-password" : "new-password"}
-            minLength={6}
-            required
-          />
-        </div>
 
-        {error && (
-          <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </p>
-        )}
-
-        <Button type="submit" className="w-full" disabled={loading !== null}>
-          {loading === "form" && <Loader2 className="animate-spin" />}
-          {isLogin ? "Daxil ol" : "Qeydiyyatdan keç"}
-        </Button>
-      </form>
-
-      {isLogin && (
-        <>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            və ya
-            <span className="h-px flex-1 bg-border" />
+          <div className="space-y-2">
+            <label htmlFor="password" className={LABEL}>
+              Şifrə
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={isLogin ? "Şifrənizi yazın" : "Ən azı 6 simvol"}
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                minLength={6}
+                required
+                className={`${FIELD} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? "Şifrəni gizlət" : "Şifrəni göstər"}
+                aria-pressed={showPassword}
+                className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            className="w-full"
-            disabled={loading !== null}
-            onClick={() => void handleSignIn(DEMO_EMAIL, DEMO_PASSWORD, "demo")}
-          >
-            {loading === "demo" ? <Loader2 className="animate-spin" /> : <PlayCircle />}
-            Demo hesabı ilə daxil ol
-          </Button>
-        </>
-      )}
+
+          {error && (
+            <p role="alert" className="rounded-[10px] bg-red-50 px-4 py-2.5 text-sm text-red-700">
+              {error}
+            </p>
+          )}
+
+          <div className="space-y-3 pt-1">
+            <button type="submit" disabled={loading !== null} className={`${BUTTON} bg-black text-white hover:bg-black/85`}>
+              {loading === "form" && <Loader2 className="animate-spin" />}
+              {isLogin ? "Daxil ol" : "Qeydiyyatdan keç"}
+            </button>
+
+            {isLogin && (
+              <button
+                type="button"
+                disabled={loading !== null}
+                onClick={() => void handleSignIn(DEMO_EMAIL, DEMO_PASSWORD, "demo")}
+                className={`${BUTTON} border border-border bg-white text-foreground hover:bg-[#f4f5f9]`}
+              >
+                {loading === "demo" ? <Loader2 className="animate-spin" /> : <PlayCircle />}
+                Demo hesabı ilə daxil ol
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
 
       <p className="text-center text-sm text-muted-foreground">
         {isLogin ? "Hesabınız yoxdur? " : "Artıq hesabınız var? "}
-        <Link href={isLogin ? "/register" : "/login"} className="font-medium text-primary hover:underline">
+        <Link href={isLogin ? "/register" : "/login"} className="font-semibold text-foreground hover:underline">
           {isLogin ? "Qeydiyyatdan keçin" : "Daxil olun"}
         </Link>
       </p>

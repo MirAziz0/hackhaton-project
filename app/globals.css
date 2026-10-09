@@ -51,6 +51,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
   --shadow-card: 0 10px 30px -14px rgb(70 55 140 / 0.22);
 }
 
