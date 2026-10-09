@@ -241,3 +241,62 @@ STYLE
 Existing categories: ${input.categories.length ? input.categories.join(", ") : "none yet"}.
 Period arguments accept: this_month, last_month, last_3_months, last_6_months, this_year, all, or a specific month as YYYY-MM.`;
 }
+
+// ---------------------------------------------------------------------------
+// Matching agent
+// ---------------------------------------------------------------------------
+
+export const MATCHING_SYSTEM = `You are the Matching agent of LaunchLens AI, a network of entrepreneurs in Azerbaijan.
+You receive the current user's profile and a numbered list of candidate entrepreneurs. Choose the 5 candidates this user would benefit most from contacting, best first.
+
+How to judge a match:
+- Complementary needs matter most: one side is looking for something the other can offer (a supplier, a customer, a partner, an investor, a mentor).
+- Then shared context: the same track, the same city, a similar stage.
+- Prefer variety over five near-identical profiles.
+
+For each choice write ONE short sentence in Azerbaijani addressed to the user ("Siz ..."), stating the concrete reason, for example: "Siz də Bakıda kosmetika biznesi qurursunuz, o isə təchizatçı axtarır". Use only facts from the profiles; never invent details.
+
+${LANGUAGE_RULES}
+
+JSON shape:
+{ "matches": [{ "id": string, "reason": string }] }
+"id" must be copied exactly from the candidate list.`;
+
+interface MatchingProfile {
+  id: string;
+  full_name: string | null;
+  track: string | null;
+  stage: string | null;
+  city: string | null;
+  products: string | null;
+  target_customer: string | null;
+  bio: string | null;
+  looking_for: string[];
+}
+
+function matchingLine(profile: MatchingProfile) {
+  return [
+    `name: ${profile.full_name || "unknown"}`,
+    `track: ${trackLabel(profile.track)}`,
+    `stage: ${stageLabel(profile.stage)}`,
+    `city: ${profile.city || "unknown"}`,
+    `offers: ${profile.products || "not specified"}`,
+    `customers: ${profile.target_customer || "not specified"}`,
+    `looking for: ${profile.looking_for?.map(lookingForLabel).join(", ") || "not specified"}`,
+    profile.bio ? `bio: ${profile.bio}` : "",
+  ]
+    .filter(Boolean)
+    .join(" | ");
+}
+
+export function matchingUserPrompt(me: MatchingProfile, candidates: MatchingProfile[]) {
+  return [
+    "CURRENT USER",
+    matchingLine(me),
+    "",
+    "CANDIDATES",
+    ...candidates.map((candidate) => `id: ${candidate.id} | ${matchingLine(candidate)}`),
+    "",
+    "Return the JSON object.",
+  ].join("\n");
+}

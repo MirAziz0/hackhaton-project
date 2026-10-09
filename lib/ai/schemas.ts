@@ -126,3 +126,11 @@ export const analysisSchema = z.object({
   key_figures: z.array(z.object({ label: text, value: text, source_id: sourceId })).min(2).max(10),
 });
 export type AnalysisOutput = z.infer<typeof analysisSchema>;
+
+// ---------------------------------------------------------------------------
+// Matching agent
+// ---------------------------------------------------------------------------
+
+export const matchingSchema = z.object({
+  matches: z.array(z.object({ id: z.string(), reason: text })).min(1).max(8),
+});

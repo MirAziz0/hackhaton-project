@@ -2,7 +2,7 @@
 
 A web platform that guides an entrepreneur from a raw business idea to a running business, with AI at every step. Built for the "AI Enterprise Solutions" hackathon track. The UI is in Azerbaijani; code and comments are in English.
 
-> Status: **Phases 1-4** are implemented (setup, schema, auth, onboarding, Idea Studio with branding images, Business Analysis, Dashboard with the AI assistant). The Network page is a placeholder until Phase 5.
+> Status: **Phases 1-5** are implemented: setup, schema, auth, onboarding, Idea Studio with branding images, Business Analysis, Dashboard with the AI assistant, and the Network with AI matching and realtime chat.
 
 ## Setup
 
@@ -58,18 +58,20 @@ app/
   api/studio, api/branding   Idea Studio agent and branding image generation
   api/analysis               Business Analysis agent (saved business, form or PDF upload)
   api/assistant              Dashboard assistant: streaming tool-use loop
+  api/matching               Matching agent: SQL pre-filter, then LLM ranking with reasons
   onboarding/                7-step questionnaire, saved to profiles
   (app)/                     Authenticated shell: sidebar + chat widget
     studio, analysis, dashboard, network, profile/[id]
 components/
   ui/                        shadcn-style primitives
-  auth/, onboarding/, layout/, chat/, studio/, analysis/, dashboard/
+  auth/, onboarding/, layout/, chat/, studio/, analysis/, dashboard/, network/
 lib/
   supabase/                  browser, server, admin and middleware clients
   ai/                        prompts, Zod schemas, LLM helper, Studio and Branding agents, image generation
   finance/                   forecast and dashboard arithmetic (done in code, not by the LLM)
   analysis/                  plan-to-text helpers and PDF text extraction
   places.ts                  known locations with fixed map coordinates
+  network.ts                 public profile fields, related tracks, candidate ordering
   constants.ts               tracks, stages, budgets, locations (Azerbaijani labels)
 types/                       shared row and JSON types
 supabase/                    SQL migration and seed
@@ -88,6 +90,11 @@ middleware.ts                refreshes the session and guards routes
 | Branding | Branding agent (`lib/ai/branding.ts`) | Generates 2 logos and a banner from prompts built out of the plan | Stores images in Supabase Storage; falls back to SVG placeholders when no image API is available |
 | Business Analysis | Analysis agent (`lib/ai/analysis.ts`) | Scores investment readiness and market fit, writes SWOT, budget check, competitors and recommendations, citing numbered sources | Selects `market_data` rows by sector, runs `webSearch`, validates every cited source id, takes market figures from the database row, and labels unsourced numbers "təxmini" |
 | Dashboard | Dashboard assistant (`app/api/assistant`, `lib/ai/assistant-tools.ts`) | Chooses a tool, then explains the result in Azerbaijani; parses transactions from natural language | Every sum, percentage, comparison and what-if scenario (`lib/finance/dashboard.ts`); a parsed transaction is saved only after the user confirms it on a card |
+| Network | Matching agent (`lib/ai/matching.ts`) | Ranks the best 5 of ~15 candidates and writes a one-sentence reason for each | Pre-filters candidates in SQL (own and related tracks, excluding the user), checks returned ids against the candidate list, and falls back to a rule-based order if the model fails |
+
+### Chat
+
+The floating chat widget reads and writes the `messages` table directly from the browser under Row Level Security (only the sender and receiver can read a message, only the sender can insert it, only the receiver can mark it read). New messages arrive through a Supabase Realtime subscription filtered on `receiver_id`. Any page can open a thread through `useChat().openChatWith(userId)`.
 
 ### How the dashboard assistant stays out of the math
 
