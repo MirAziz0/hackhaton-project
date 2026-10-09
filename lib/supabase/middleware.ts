@@ -46,7 +46,9 @@ export async function updateSession(request: NextRequest) {
     return redirect;
   };
 
-  if (!signedIn && !isAuthRoute && !pathname.startsWith("/api")) return redirectTo("/login");
+  // The landing page ("/") is public; every other page requires a session.
+  const isPublic = isAuthRoute || pathname === "/" || pathname.startsWith("/api");
+  if (!signedIn && !isPublic) return redirectTo("/login");
   if (signedIn && isAuthRoute) return redirectTo("/");
 
   return response;

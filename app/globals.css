@@ -144,3 +144,34 @@
     animation: none;
   }
 }
+
+/* Landing page: deep navy-violet backdrop with a violet glow on the left and a blue one on the right. */
+@utility landing-backdrop {
+  background-color: #0c0a24;
+  background-image:
+    radial-gradient(52rem 34rem at 0% 0%, rgb(124 92 255 / 0.3) 0%, transparent 62%),
+    radial-gradient(60rem 40rem at 100% 12%, rgb(59 130 246 / 0.28) 0%, transparent 62%),
+    linear-gradient(180deg, #100d2e 0%, #0c0a24 55%, #0a081d 100%);
+  background-repeat: no-repeat;
+}
+
+/* Gentle bobbing for the floating result cards in the landing hero. */
+@keyframes landing-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.landing-float {
+  animation: landing-float 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-float {
+    animation: none;
+  }
+}
