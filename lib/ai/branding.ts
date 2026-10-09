@@ -53,7 +53,8 @@ export async function generateBrandingImages(input: BrandingInput): Promise<Bran
 
   async function produce(prompt: string, shape: "square" | "wide", fallbackSvg: string) {
     const image = await generateImage(prompt, shape);
-    const url = image ? await upload(input.userId, image.data, image.contentType, "png") : null;
+    const extension = image?.contentType === "image/jpeg" ? "jpg" : image?.contentType === "image/webp" ? "webp" : "png";
+    const url = image ? await upload(input.userId, image.data, image.contentType, extension) : null;
     if (url) return url;
     placeholder = true;
     return storePlaceholder(input.userId, fallbackSvg);

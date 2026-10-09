@@ -87,3 +87,40 @@ export const brandingRequestSchema = z.object({
     })
     .optional(),
 });
+
+// ---------------------------------------------------------------------------
+// Analysis agent
+// ---------------------------------------------------------------------------
+
+const score = z.number().min(0).max(100);
+const fit = z.object({ score, reason: text });
+const sourceId = z.string().nullish();
+
+export const analysisSchema = z.object({
+  overall_score: score,
+  summary: text,
+  market_fit: z.object({ baku: fit, regions: fit, online: fit }),
+  swot: z.object({
+    strengths: z.array(text).min(2).max(5),
+    weaknesses: z.array(text).min(2).max(5),
+    opportunities: z.array(text).min(2).max(5),
+    threats: z.array(text).min(2).max(5),
+  }),
+  location_analysis: z.object({
+    assessment: text,
+    alternatives: z.array(z.object({ name: text, reason: text })).max(3),
+  }),
+  budget_check: z
+    .array(z.object({ category: text, status: z.enum(["low", "ok", "high"]), comment: text }))
+    .min(2)
+    .max(8),
+  competitors: z
+    .array(z.object({ name: text, description: text, differentiation: text, source_id: sourceId }))
+    .max(6),
+  recommendations: z
+    .array(z.object({ priority: z.enum(["high", "medium", "low"]), title: text, detail: text }))
+    .min(3)
+    .max(8),
+  key_figures: z.array(z.object({ label: text, value: text, source_id: sourceId })).min(2).max(10),
+});
+export type AnalysisOutput = z.infer<typeof analysisSchema>;

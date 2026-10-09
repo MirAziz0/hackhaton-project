@@ -7,23 +7,62 @@ export interface GeneratedImage {
 
 type ImageShape = "square" | "wide";
 
-// Single entry point for image generation so the provider can be swapped via IMAGE_PROVIDER.
-// Returns null when no provider/key is configured or the request fails; callers fall back
-// to placeholders, so the app keeps working without an image API.
+const TIMEOUT_MS = 100_000;
+
+// Single entry point for image generation so the provider can be swapped via IMAGE_PROVIDER
+// ("gemini" or "openai"). Returns null when no key is configured or the request fails;
+// callers fall back to placeholders, so the app keeps working without an image API.
 export async function generateImage(prompt: string, shape: ImageShape = "square"): Promise<GeneratedImage | null> {
-  const provider = (process.env.IMAGE_PROVIDER || "openai").toLowerCase();
-  const apiKey = process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
+  const provider = (process.env.IMAGE_PROVIDER || "gemini").toLowerCase();
 
   try {
-    if (provider === "openai") return await generateWithOpenAI(prompt, shape, apiKey);
-    // Add other providers here (same signature) and select them with IMAGE_PROVIDER.
+    if (provider === "gemini") {
+      const apiKey = process.env.IMAGE_API_KEY || process.env.GEMINI_API_KEY;
+      return apiKey ? await generateWithGemini(prompt, shape, apiKey) : null;
+    }
+    if (provider === "openai") {
+      const apiKey = process.env.IMAGE_API_KEY || process.env.OPENAI_API_KEY;
+      return apiKey ? await generateWithOpenAI(prompt, shape, apiKey) : null;
+    }
     console.warn(`[image] Unknown IMAGE_PROVIDER "${provider}", using placeholders.`);
     return null;
   } catch (err) {
-    console.error("[image] generation failed:", err instanceof Error ? err.message : err);
+    console.error(`[image] ${provider} generation failed:`, err instanceof Error ? err.message : err);
     return null;
   }
+}
+
+interface GeminiResponse {
+  candidates?: { content?: { parts?: { inlineData?: { mimeType?: string; data?: string } }[] } }[];
+}
+
+async function generateWithGemini(prompt: string, shape: ImageShape, apiKey: string): Promise<GeneratedImage | null> {
+  const model = process.env.IMAGE_MODEL || "gemini-2.5-flash-image";
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseModalities: ["IMAGE"],
+          imageConfig: { aspectRatio: shape === "wide" ? "16:9" : "1:1" },
+        },
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Gemini ${response.status}: ${(await response.text()).slice(0, 300)}`);
+  }
+
+  const json = (await response.json()) as GeminiResponse;
+  const inline = json.candidates?.[0]?.content?.parts?.find((part) => part.inlineData?.data)?.inlineData;
+  if (!inline?.data) return null;
+  return { data: Buffer.from(inline.data, "base64"), contentType: inline.mimeType || "image/png" };
 }
 
 async function generateWithOpenAI(prompt: string, shape: ImageShape, apiKey: string): Promise<GeneratedImage | null> {
@@ -38,7 +77,7 @@ async function generateWithOpenAI(prompt: string, shape: ImageShape, apiKey: str
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(100_000),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 
   if (!response.ok) {
