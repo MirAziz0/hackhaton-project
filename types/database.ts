@@ -37,7 +37,8 @@ export interface FinancialForecast {
   startup_costs: { item: string; amount: number }[];
   monthly_costs: { item: string; amount: number }[];
   monthly_projection: { month: number; revenue: number; costs: number }[];
-  break_even_month: number;
+  // null when break-even is not reached within the projected months
+  break_even_month: number | null;
 }
 
 export interface LocationSuggestion {
@@ -54,6 +55,7 @@ export interface Branding {
   slogans: string[];
   logo_urls: string[];
   banner_url: string | null;
+  visual_style?: { style: string; colors: string[]; logo_concept: string };
 }
 
 export interface Business {

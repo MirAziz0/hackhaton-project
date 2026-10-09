@@ -2,7 +2,7 @@
 
 A web platform that guides an entrepreneur from a raw business idea to a running business, with AI at every step. Built for the "AI Enterprise Solutions" hackathon track. The UI is in Azerbaijani; code and comments are in English.
 
-> Status: **Phase 1** (setup, schema, auth, layout, onboarding) is implemented. Studio, Analysis, Dashboard and Network pages are placeholders until their phases land.
+> Status: **Phases 1-2** are implemented (setup, schema, auth, onboarding, Idea Studio with branding images). Analysis, Dashboard and Network pages are placeholders until their phases land.
 
 ## Setup
 
@@ -15,8 +15,7 @@ npm install
 ### 2. Create a Supabase project
 
 1. Create a project at https://supabase.com/dashboard.
-2. **Authentication → Sign In / Providers → Email**: turn **off** "Confirm email" (otherwise new users cannot sign in until they click an email link).
-3. **Project Settings → API**: copy the project URL, the `anon` key and the `service_role` key.
+2. **Project Settings → API**: copy the project URL, the `anon` key and the `service_role` key.
 
 ### 3. Environment variables
 
@@ -28,7 +27,7 @@ Copy `.env.example` to `.env.local` and fill it in.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Phase 1 | Public key used by the browser and server clients |
 | `SUPABASE_SERVICE_ROLE_KEY` | Phase 1 (seed helper), Phase 2+ | Server-only admin key. Never expose it to the client |
 | `OPENAI_API_KEY`, `LLM_MODEL` | Phase 2 | OpenAI GPT API, called only from route handlers |
-| `IMAGE_PROVIDER`, `IMAGE_API_KEY` | Phase 2 | Logo and banner generation (reuses `OPENAI_API_KEY` when empty) |
+| `IMAGE_PROVIDER`, `IMAGE_MODEL`, `IMAGE_API_KEY` | Phase 2 | Logo and banner generation (reuses `OPENAI_API_KEY` when empty) |
 | `SEARCH_PROVIDER`, `SEARCH_API_KEY` | Phase 3 | Web search for competitor research |
 
 ### 4. Run the migration and the seed
@@ -55,14 +54,19 @@ Open http://localhost:3000.
 ```
 app/
   (auth)/login, register     Supabase email/password auth + demo login
+  api/auth/register          Creates confirmed users (no email verification step)
+  api/studio, api/branding   Idea Studio agent and branding image generation
   onboarding/                7-step questionnaire, saved to profiles
   (app)/                     Authenticated shell: sidebar + chat widget
     studio, analysis, dashboard, network, profile/[id]
 components/
   ui/                        shadcn-style primitives
-  auth/, onboarding/, layout/, chat/
+  auth/, onboarding/, layout/, chat/, studio/
 lib/
   supabase/                  browser, server, admin and middleware clients
+  ai/                        prompts, Zod schemas, LLM helper, Studio and Branding agents, image generation
+  finance/                   forecast arithmetic (done in code, not by the LLM)
+  places.ts                  known locations with fixed map coordinates
   constants.ts               tracks, stages, budgets, locations (Azerbaijani labels)
 types/                       shared row and JSON types
 supabase/                    SQL migration and seed
@@ -71,4 +75,11 @@ middleware.ts                refreshes the session and guards routes
 
 - **Auth and routing:** the middleware redirects signed-out users to `/login`. The `(app)` layout sends users who have not finished onboarding to `/onboarding`; after onboarding they land on `/studio`, `/analysis` or `/dashboard` depending on their stage.
 - **Data access:** Row Level Security restricts every table to its owner, except that profiles are readable by all signed-in users and messages by their sender and receiver.
-- **AI:** all LLM, image and search calls will live in `lib/ai/` and run only inside route handlers under `app/api/` (from Phase 2).
+- **AI:** all LLM, image and search calls live in `lib/ai/` and run only inside route handlers under `app/api/`. Prompts are in `lib/ai/prompts.ts`. Every agent returns JSON validated with Zod and retries once with the validation error.
+
+## Where the AI is used
+
+| Feature | Agent | What the model does | What code does |
+|---|---|---|---|
+| Idea Studio | Studio agent (`lib/ai/studio.ts`) | Asks 2-3 clarifying questions, then writes the plan, cost items, 12-month revenue estimate, location picks, names and slogans | Totals, monthly projection and break-even (`lib/finance/forecast.ts`); map coordinates from a fixed list (`lib/places.ts`) |
+| Branding | Branding agent (`lib/ai/branding.ts`) | Generates 2 logos and a banner from prompts built out of the plan | Stores images in Supabase Storage; falls back to SVG placeholders when no image API is available |
