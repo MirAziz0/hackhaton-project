@@ -69,10 +69,11 @@ export async function LandingPage() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitch variant="dark" />
-          <Link href="/login" className="glass-button hidden h-11 px-5 text-sm sm:inline-flex">
+          <Link href="/login" className="glass-button h-10 px-4 text-sm sm:h-11 sm:px-5">
             {t("Daxil ol")}
           </Link>
-          <Link href="/register" className="glass-button glass-button-primary h-10 px-4 text-sm sm:h-11 sm:px-5">
+          {/* .glass-button sets its own display, so hiding it on phones needs the important flag. */}
+          <Link href="/register" className="glass-button glass-button-primary !hidden h-11 px-5 text-sm sm:!inline-flex">
             {t("Qeydiyyat")}
           </Link>
         </div>
