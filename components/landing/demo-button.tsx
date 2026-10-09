@@ -29,7 +29,7 @@ export function DemoButton() {
       type="button"
       onClick={openDemo}
       disabled={loading}
-      className="inline-flex h-12 items-center gap-2.5 rounded-xl border border-white/25 px-6 text-sm font-medium text-white transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-70"
+      className="glass-button h-13 px-7 text-sm"
     >
       {loading ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
       Demoya bax

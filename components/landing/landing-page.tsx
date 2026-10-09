@@ -16,15 +16,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { DemoButton } from "@/components/landing/demo-button";
+import { LandingNav } from "@/components/landing/landing-nav";
 import { APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-
-const NAV_LINKS = [
-  { href: "#home", label: "Ana səhifə" },
-  { href: "#features", label: "İmkanlar" },
-  { href: "#how", label: "Necə işləyir" },
-  { href: "#audience", label: "Kimlər üçün" },
-];
 
 // Floating result cards in the hero: what the platform produces from one idea.
 const HERO_CARDS: { icon: LucideIcon; title: string; status: string; tint: string; position: string; delay: string }[] = [
@@ -53,13 +47,14 @@ const AUDIENCE: { icon: LucideIcon; title: string; text: string }[] = [
   { icon: Building2, title: "İnkubatorlar", text: "Startap planlarını eyni meyarlarla müqayisə edin və güclü komandaları tez seçin." },
 ];
 
-const CTA_PRIMARY =
-  "inline-flex h-12 items-center rounded-xl bg-[#7c5cff] px-7 text-sm font-semibold text-white shadow-[0_12px_30px_-10px_rgb(124_92_255/0.9)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60";
+const CTA_PRIMARY = "glass-button glass-button-primary h-13 px-8 text-sm";
 
 export function LandingPage() {
   return (
     <div className="landing-backdrop min-h-screen text-white">
-      <header className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-6 lg:px-10">
+      {/* Floating glass bar that stays at the top while the page scrolls. */}
+      <header className="sticky top-4 z-40 px-4 lg:px-10">
+        <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2.5 pl-3 pr-2.5">
         <Link href="/" className="flex items-center gap-2.5" aria-label={APP_NAME}>
           <span className="bg-brand flex size-10 items-center justify-center rounded-full">
             <Rocket className="size-5" />
@@ -67,40 +62,30 @@ export function LandingPage() {
           <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
         </Link>
 
-        <nav aria-label="Səhifə bölmələri" className="hidden items-center gap-9 text-sm text-white/80 md:flex">
-          {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className="transition-colors hover:text-white">
-              {link.label}
-            </a>
-          ))}
-        </nav>
+        <LandingNav />
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="inline-flex h-10 items-center rounded-xl border border-white/25 px-5 text-sm font-medium transition-colors hover:bg-white/10"
-          >
+          <Link href="/login" className="glass-button h-11 px-5 text-sm">
             Daxil ol
           </Link>
-          <Link
-            href="/register"
-            className="inline-flex h-10 items-center rounded-xl bg-[#7c5cff] px-5 text-sm font-semibold transition hover:brightness-110"
-          >
+          <Link href="/register" className="glass-button glass-button-primary h-11 px-5 text-sm">
             Qeydiyyat
           </Link>
+        </div>
         </div>
       </header>
 
       <main>
-        <section id="home" className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-10 lg:grid-cols-2 lg:px-10 lg:pt-16">
+        <section id="home" className="mx-auto grid scroll-mt-28 max-w-7xl items-center gap-12 px-6 pb-24 pt-10 lg:grid-cols-2 lg:px-10 lg:pt-16">
           <div className="space-y-7">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90">
               <Star className="size-4 fill-[#a78bfa] text-[#a78bfa]" />
               Süni intellektlə işləyən biznes platforması
             </p>
-            <h1 className="text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">
+            <h1 className="text-5xl font-bold leading-[1.15] tracking-tight sm:text-6xl xl:text-7xl">
               İdeyadan
-              <span className="block bg-gradient-to-r from-[#a78bfa] via-[#8b9cff] to-[#60a5fa] bg-clip-text text-transparent">
+              {/* Padding below the baseline keeps the tails of "ğ" inside the clipped gradient. */}
+              <span className="block bg-gradient-to-r from-[#c4b5fd] via-[#a5b4fc] to-[#67e8f9] bg-clip-text pb-3 text-transparent drop-shadow-[0_6px_28px_rgb(139_92_246/0.45)]">
                 Biznes Uğuruna
               </span>
             </h1>
@@ -143,7 +128,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="features" className="mx-auto max-w-7xl scroll-mt-8 px-6 py-20 lg:px-10">
+        <section id="features" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
           <SectionHeading eyebrow="İmkanlar" title="Bir platformada bütün yol" />
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(({ icon: Icon, title, text }) => (
@@ -158,7 +143,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="how" className="mx-auto max-w-7xl scroll-mt-8 px-6 py-20 lg:px-10">
+        <section id="how" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
           <SectionHeading eyebrow="Necə işləyir" title="Üç addımda başlayın" />
           <ol className="mt-12 grid gap-5 lg:grid-cols-3">
             {STEPS.map((step, index) => (
@@ -173,7 +158,7 @@ export function LandingPage() {
           </ol>
         </section>
 
-        <section id="audience" className="mx-auto max-w-7xl scroll-mt-8 px-6 py-20 lg:px-10">
+        <section id="audience" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
           <SectionHeading eyebrow="Kimlər üçün" title="Sahibkarlar, banklar və inkubatorlar üçün" />
           <div className="mt-12 grid gap-5 lg:grid-cols-3">
             {AUDIENCE.map(({ icon: Icon, title, text }) => (
