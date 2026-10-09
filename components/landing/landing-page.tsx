@@ -15,7 +15,6 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { DemoButton } from "@/components/landing/demo-button";
 import { LandingBackground } from "@/components/landing/landing-background";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { APP_NAME } from "@/lib/constants";
@@ -100,7 +99,6 @@ export function LandingPage() {
               <Link href="/register" className={CTA_PRIMARY}>
                 İndi başla
               </Link>
-              <DemoButton />
             </div>
           </div>
 
@@ -181,13 +179,12 @@ export function LandingPage() {
           <div className="rounded-[2rem] border border-white/15 bg-[linear-gradient(135deg,rgb(124_92_255/0.45),rgb(59_130_246/0.3))] px-8 py-14 text-center">
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">İdeyanızı bu gün plana çevirin</h2>
             <p className="mx-auto mt-3 max-w-xl text-white/80">
-              Qeydiyyat bir dəqiqə çəkir. Hazır nümunəyə baxmaq üçün demo hesabı ilə də daxil ola bilərsiniz.
+              Qeydiyyat bir dəqiqə çəkir və ilk biznes planınız bir neçə dəqiqəyə hazır olur.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link href="/register" className={CTA_PRIMARY}>
                 Pulsuz başla
               </Link>
-              <DemoButton />
             </div>
           </div>
         </section>
