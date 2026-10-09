@@ -1,13 +1,11 @@
 import "server-only";
-import { PDFParse } from "pdf-parse";
 
 // Extracts plain text from an uploaded PDF. Returns an empty string for scanned/image-only files.
+// unpdf ships a serverless build of pdf.js (no worker file, no native canvas), so it also runs
+// on Vercel functions. It is imported lazily so a parser problem can never break the whole route.
 export async function extractPdfText(data: Buffer): Promise<string> {
-  const parser = new PDFParse({ data: new Uint8Array(data) });
-  try {
-    const result = await parser.getText();
-    return result.text.replace(/\s+\n/g, "\n").trim();
-  } finally {
-    await parser.destroy();
-  }
+  const { extractText, getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(new Uint8Array(data));
+  const { text } = await extractText(pdf, { mergePages: true });
+  return text.replace(/[ \t]+\n/g, "\n").trim();
 }

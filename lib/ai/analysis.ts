@@ -81,10 +81,14 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPayload
     return { label: figure.label, value: row ? formatValue(row) : figure.value, source_id };
   });
 
-  const competitors = output.competitors.map((competitor) => ({
-    ...competitor,
-    source_id: validId(competitor.source_id),
-  }));
+  const competitors = output.competitors
+    .filter((competitor) => competitor.name?.trim())
+    .slice(0, 6)
+    .map((competitor) => ({
+      ...competitor,
+      name: competitor.name!.trim(),
+      source_id: validId(competitor.source_id),
+    }));
 
   const payload: AnalysisPayload = {
     overall_score: Math.round(output.overall_score),

@@ -25,9 +25,17 @@ const ANALYSIS_STEPS = [
 ];
 
 const GENERIC_ERROR = "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.";
-const MAX_PDF_BYTES = 5 * 1024 * 1024;
+// Vercel rejects request bodies above 4.5 MB, so stay safely below that.
+const MAX_PDF_BYTES = 4 * 1024 * 1024;
 const SELECT_CLASS =
   "flex h-10 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
+
+// Message for responses that carry no JSON error (for example a host-level timeout page).
+function statusMessage(status: number) {
+  if (status === 413) return "Fayl çox böyükdür. Ən çox 4 MB ölçüdə PDF yükləyin.";
+  if (status === 504 || status === 408) return "Analiz çox uzun çəkdi və dayandırıldı. Zəhmət olmasa yenidən cəhd edin.";
+  return `Serverdə xəta baş verdi (kod ${status}). Zəhmət olmasa yenidən cəhd edin.`;
+}
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
@@ -80,7 +88,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
     setError(null);
     if (next && next.size > MAX_PDF_BYTES) {
       setFile(null);
-      setError("PDF faylı 5 MB-dan böyük olmamalıdır.");
+      setError("PDF faylı 4 MB-dan böyük olmamalıdır.");
       return;
     }
     setFile(next);
@@ -103,7 +111,9 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
         business?: { id: string; name: string };
         error?: string;
       } | null;
-      if (!response.ok || !json?.analysis || !json.business) throw new Error(json?.error ?? GENERIC_ERROR);
+      if (!response.ok || !json?.analysis || !json.business) {
+        throw new Error(json?.error ?? (response.ok ? GENERIC_ERROR : statusMessage(response.status)));
+      }
 
       setFresh((current) => ({ ...current, [json.business!.id]: json.analysis! }));
       setResult({ analysis: json.analysis, businessName: json.business.name });
@@ -191,7 +201,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
 
           {source === "pdf" && (
             <div className="space-y-2">
-              <Label htmlFor="plan-file">Biznes planı (PDF, ən çox 5 MB)</Label>
+              <Label htmlFor="plan-file">Biznes planı (PDF, ən çox 4 MB)</Label>
               <input
                 ref={fileInput}
                 id="plan-file"

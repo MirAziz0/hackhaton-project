@@ -113,10 +113,12 @@ export const analysisSchema = z.object({
   budget_check: z
     .array(z.object({ category: text, status: z.enum(["low", "ok", "high"]), comment: text }))
     .min(2)
-    .max(8),
+    .max(12),
   competitors: z
-    .array(z.object({ name: text, description: text, differentiation: text, source_id: sourceId }))
-    .max(6),
+    // The model sometimes returns a nameless entry; those are dropped in code instead of
+    // failing validation and paying for a full retry.
+    .array(z.object({ name: z.string().nullish(), description: text, differentiation: text, source_id: sourceId }))
+    .max(8),
   recommendations: z
     .array(z.object({ priority: z.enum(["high", "medium", "low"]), title: text, detail: text }))
     .min(3)

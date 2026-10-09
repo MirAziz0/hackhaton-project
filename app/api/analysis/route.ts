@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { runAnalysis } from "@/lib/ai/analysis";
 import { toUserError } from "@/lib/ai/errors";
 import { extractPdfText } from "@/lib/analysis/pdf";
-import { TRACKS } from "@/lib/constants";
 import { planTextFromBusiness, planTextFromForm, truncatePlan } from "@/lib/analysis/plan-text";
+import { TRACKS } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionProfile } from "@/lib/supabase/server";
 import type { Analysis } from "@/types/analysis";
@@ -13,7 +13,8 @@ import type { Business } from "@/types/database";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-const MAX_PDF_BYTES = 5 * 1024 * 1024;
+// Vercel rejects request bodies above 4.5 MB, so stay safely below that.
+const MAX_PDF_BYTES = 4 * 1024 * 1024;
 
 function fail(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -24,7 +25,19 @@ function field(form: FormData, name: string, maxLength: number) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 }
 
-export async function POST(request: Request) {
+// Keeps the uploaded plan in private storage. The analysis never depends on this succeeding.
+async function storePdf(userId: string, buffer: Buffer) {
+  try {
+    const { error } = await createAdminClient()
+      .storage.from("plans")
+      .upload(`${userId}/${randomUUID()}.pdf`, buffer, { contentType: "application/pdf" });
+    if (error) console.warn("[analysis] could not store the PDF:", error.message);
+  } catch (err) {
+    console.warn("[analysis] could not store the PDF:", err instanceof Error ? err.message : err);
+  }
+}
+
+async function handle(request: Request) {
   const { supabase, user, profile } = await getSessionProfile();
   if (!user || !profile) return fail("Davam etmək üçün daxil olun.", 401);
 
@@ -61,7 +74,7 @@ export async function POST(request: Request) {
   } else if (source === "pdf") {
     const file = form.get("file");
     if (!(file instanceof File) || file.size === 0) return fail("PDF faylı seçin.");
-    if (file.size > MAX_PDF_BYTES) return fail("PDF faylı 5 MB-dan böyük olmamalıdır.");
+    if (file.size > MAX_PDF_BYTES) return fail("PDF faylı 4 MB-dan böyük olmamalıdır.");
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
       return fail("Yalnız PDF formatı qəbul olunur.");
     }
@@ -79,38 +92,44 @@ export async function POST(request: Request) {
     }
     businessName = field(form, "name", 100) || file.name.replace(/\.pdf$/i, "").slice(0, 100) || "Biznes planı";
     planText = truncatePlan(text);
-
-    // Keep the uploaded plan in private storage; the analysis does not depend on this succeeding.
-    const { error: uploadError } = await createAdminClient()
-      .storage.from("plans")
-      .upload(`${user.id}/${randomUUID()}.pdf`, buffer, { contentType: "application/pdf" });
-    if (uploadError) console.warn("[analysis] could not store the PDF:", uploadError.message);
+    await storePdf(user.id, buffer);
   } else {
     return fail("Sorğu düzgün deyil.");
   }
 
-  try {
-    const payload = await runAnalysis({ supabase, profile, businessName, planText, sector });
+  const payload = await runAnalysis({ supabase, profile, businessName, planText, sector });
 
-    // Form and PDF inputs have no business yet, so create one to attach the analysis to.
-    if (!businessId) {
-      const { data, error } = await supabase
-        .from("businesses")
-        .insert({ owner_id: user.id, name: businessName, idea_text: planText })
-        .select("id")
-        .single();
-      if (error || !data) return fail("Analizi yadda saxlamaq mümkün olmadı.", 500);
-      businessId = data.id as string;
-    }
-
-    const { data: saved, error: saveError } = await supabase
-      .from("analyses")
-      .insert({ business_id: businessId, ...payload })
-      .select("*")
+  // Form and PDF inputs have no business yet, so create one to attach the analysis to.
+  if (!businessId) {
+    const { data, error } = await supabase
+      .from("businesses")
+      .insert({ owner_id: user.id, name: businessName, idea_text: planText })
+      .select("id")
       .single();
-    if (saveError || !saved) return fail("Analizi yadda saxlamaq mümkün olmadı.", 500);
+    if (error || !data) {
+      console.error("[analysis] could not create the business:", error?.message);
+      return fail("Analizi yadda saxlamaq mümkün olmadı.", 500);
+    }
+    businessId = data.id as string;
+  }
 
-    return NextResponse.json({ analysis: saved as Analysis, business: { id: businessId, name: businessName } });
+  const { data: saved, error: saveError } = await supabase
+    .from("analyses")
+    .insert({ business_id: businessId, ...payload })
+    .select("*")
+    .single();
+  if (saveError || !saved) {
+    console.error("[analysis] could not save the analysis:", saveError?.message);
+    return fail("Analizi yadda saxlamaq mümkün olmadı.", 500);
+  }
+
+  return NextResponse.json({ analysis: saved as Analysis, business: { id: businessId, name: businessName } });
+}
+
+// Every failure is turned into a JSON error, so the client always has a message to show.
+export async function POST(request: Request) {
+  try {
+    return await handle(request);
   } catch (err) {
     const { message, status } = toUserError(err);
     return fail(message, status);
