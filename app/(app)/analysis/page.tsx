@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { AnalysisWorkspace } from "@/components/analysis/analysis-workspace";
 import { PageHeader } from "@/components/layout/page-header";
-import { getSessionProfile } from "@/lib/supabase/server";
+import { getAuth, getSessionProfile } from "@/lib/supabase/server";
 import type { Analysis } from "@/types/analysis";
 
 export const metadata = { title: "Analiz — LaunchLens AI" };
@@ -12,27 +12,26 @@ export default async function AnalysisPage({
   searchParams: Promise<{ business?: string }>;
 }) {
   const { business: requestedId } = await searchParams;
-  const { supabase, user, profile } = await getSessionProfile();
+  const { supabase, user } = await getAuth();
   if (!user) redirect("/login");
 
-  const { data: businessRows } = await supabase
-    .from("businesses")
-    .select("id, name")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: false });
-  const businesses = (businessRows as { id: string; name: string }[] | null) ?? [];
+  // The profile and the businesses (with their analyses) load in parallel.
+  const [{ profile }, { data: businessRows }] = await Promise.all([
+    getSessionProfile(),
+    supabase
+      .from("businesses")
+      .select("id, name, analyses(*)")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false })
+      .order("created_at", { referencedTable: "analyses", ascending: false }),
+  ]);
+  const rows = (businessRows as { id: string; name: string; analyses: Analysis[] }[] | null) ?? [];
+  const businesses = rows.map(({ id, name }) => ({ id, name }));
 
-  // Newest first, so the first analysis seen for each business is its latest one.
+  // Analyses arrive newest first, so the first one of each business is its latest.
   const latestAnalyses: Record<string, Analysis> = {};
-  if (businesses.length) {
-    const { data: analysisRows } = await supabase
-      .from("analyses")
-      .select("*")
-      .in("business_id", businesses.map((business) => business.id))
-      .order("created_at", { ascending: false });
-    for (const analysis of (analysisRows as Analysis[] | null) ?? []) {
-      latestAnalyses[analysis.business_id] ??= analysis;
-    }
+  for (const row of rows) {
+    if (row.analyses?.[0]) latestAnalyses[row.id] = row.analyses[0];
   }
 
   const initialBusinessId = businesses.some((business) => business.id === requestedId) ? requestedId! : null;

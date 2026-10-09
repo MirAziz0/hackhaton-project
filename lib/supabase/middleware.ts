@@ -30,9 +30,14 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
+  // getSession() reads the cookie and only contacts Supabase when the token needs refreshing,
+  // so it adds no network round trip to ordinary navigations. It is used here purely to decide
+  // on redirects; pages and route handlers still verify the user with getUser(), and all data
+  // access is protected by Row Level Security.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const signedIn = Boolean(session);
 
   const redirectTo = (path: string) => {
     const redirect = NextResponse.redirect(new URL(path, request.url));
@@ -41,8 +46,8 @@ export async function updateSession(request: NextRequest) {
     return redirect;
   };
 
-  if (!user && !isAuthRoute && !pathname.startsWith("/api")) return redirectTo("/login");
-  if (user && isAuthRoute) return redirectTo("/");
+  if (!signedIn && !isAuthRoute && !pathname.startsWith("/api")) return redirectTo("/login");
+  if (signedIn && isAuthRoute) return redirectTo("/");
 
   return response;
 }

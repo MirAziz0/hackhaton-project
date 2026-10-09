@@ -65,18 +65,21 @@ export function DashboardClient({ businesses, business, initialTransactions, tod
       .single();
     if (error || !data) throw new Error(error?.message ?? "insert failed");
     setTransactions((current) => [...current, normalise(data as Transaction)]);
+    router.refresh();
   }
 
   async function updateTransaction(id: string, input: TransactionInput) {
     const { data, error } = await createClient().from("transactions").update(input).eq("id", id).select("*").single();
     if (error || !data) throw new Error(error?.message ?? "update failed");
     setTransactions((current) => current.map((tx) => (tx.id === id ? normalise(data as Transaction) : tx)));
+    router.refresh();
   }
 
   async function deleteTransaction(transaction: Transaction) {
     const { error } = await createClient().from("transactions").delete().eq("id", transaction.id);
     if (error) return;
     setTransactions((current) => current.filter((tx) => tx.id !== transaction.id));
+    router.refresh();
   }
 
   return (

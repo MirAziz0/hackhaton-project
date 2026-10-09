@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { todayInBaku } from "@/lib/dates";
-import { createClient } from "@/lib/supabase/server";
+import { getAuth } from "@/lib/supabase/server";
 import type { FinancialForecast, Transaction } from "@/types/database";
 
 export const metadata = { title: "Dashboard — LaunchLens AI" };
@@ -15,6 +15,7 @@ interface BusinessRow {
   id: string;
   name: string;
   financial_forecast: FinancialForecast | null;
+  transactions: Transaction[];
 }
 
 export default async function DashboardPage({
@@ -23,15 +24,13 @@ export default async function DashboardPage({
   searchParams: Promise<{ business?: string }>;
 }) {
   const { business: requestedId } = await searchParams;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuth();
   if (!user) redirect("/login");
 
+  // One round trip: the businesses together with their transactions.
   const { data: businessRows } = await supabase
     .from("businesses")
-    .select("id, name, financial_forecast")
+    .select("id, name, financial_forecast, transactions(*)")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
   const businesses = (businessRows as BusinessRow[] | null) ?? [];
@@ -63,11 +62,7 @@ export default async function DashboardPage({
   }
 
   const business = businesses.find((item) => item.id === requestedId) ?? businesses[0];
-  const { data: transactionRows } = await supabase
-    .from("transactions")
-    .select("*")
-    .eq("business_id", business.id)
-    .order("date", { ascending: true });
+  const transactions = [...(business.transactions ?? [])].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <>
@@ -76,8 +71,8 @@ export default async function DashboardPage({
       <DashboardClient
         key={business.id}
         businesses={businesses.map(({ id, name }) => ({ id, name }))}
-        business={business}
-        initialTransactions={(transactionRows as Transaction[] | null) ?? []}
+        business={{ id: business.id, name: business.name, financial_forecast: business.financial_forecast }}
+        initialTransactions={transactions}
         today={todayInBaku()}
       />
     </>

@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { budgetLabel, lookingForLabel, stageLabel, trackLabel } from "@/lib/constants";
-import { createClient } from "@/lib/supabase/server";
+import { getAuth } from "@/lib/supabase/server";
 import { initials } from "@/lib/utils";
 import type { Profile } from "@/types/database";
 
@@ -12,15 +12,12 @@ export const metadata = { title: "Profil — LaunchLens AI" };
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const [{ data }, { data: auth }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", id).maybeSingle(),
-    supabase.auth.getUser(),
-  ]);
+  const { supabase, user } = await getAuth();
+  const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
 
   const profile = data as Profile | null;
   if (!profile) notFound();
-  const isOwn = auth.user?.id === profile.id;
+  const isOwn = user?.id === profile.id;
 
   return (
     <>

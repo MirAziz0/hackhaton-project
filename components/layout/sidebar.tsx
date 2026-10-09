@@ -34,11 +34,13 @@ export function Sidebar({ profile }: { profile: Profile }) {
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
+        {NAV_ITEMS.map(({ href: baseHref, label, icon: Icon }) => {
+          const active = pathname === baseHref || pathname.startsWith(`${baseHref}/`);
+          // Link straight to the user's own profile instead of going through a redirect page.
+          const href = baseHref === "/profile" ? `/profile/${profile.id}` : baseHref;
           return (
             <Link
-              key={href}
+              key={baseHref}
               href={href}
               aria-current={active ? "page" : undefined}
               className={cn(
