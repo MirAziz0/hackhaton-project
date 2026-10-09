@@ -171,6 +171,7 @@ export const en: Record<string, string> = {
   "Artıq hesabınız var? ": "Already have an account? ",
   "Qeydiyyatdan keçin": "Sign up",
   "Daxil olun": "Sign in",
+  "Demo hesabı ilə daxil ol": "Sign in with the demo account",
   "E-poçt və ya şifrə yanlışdır.": "The email or password is incorrect.",
   "E-poçt ünvanınız hələ təsdiqlənməyib.": "Your email address has not been confirmed yet.",
   "Supabase konfiqurasiya edilməyib. .env.local faylını yoxlayın.":
@@ -236,6 +237,10 @@ export const en: Record<string, string> = {
   "Şəbəkə bölməsində sahibkarın kartındakı “Əlaqə saxla” düyməsini basın.":
     "In the Network section, press “Contact” on an entrepreneur's card.",
   Siz: "You",
+  "Söhbəti sil": "Delete conversation",
+  "Bu söhbət hər iki tərəf üçün silinəcək. Davam edilsin?":
+    "This conversation will be deleted for both of you. Continue?",
+  "Söhbəti silmək mümkün olmadı. Yenidən cəhd edin.": "Could not delete the conversation. Try again.",
 
   // --- Network and profile --------------------------------------------------------------
   "Sizə uyğun sahibkarları tapın və əlaqə qurun.": "Find the entrepreneurs who suit you and get in touch.",

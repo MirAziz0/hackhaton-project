@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowUp, Loader2, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, ArrowUp, Loader2, MessageCircle, Trash2, X } from "lucide-react";
 import { useChat } from "@/components/chat/chat-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +54,8 @@ export function ChatWidget() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
   const requested = useRef(new Set<string>());
   const scroller = useRef<HTMLDivElement>(null);
 
@@ -119,6 +121,7 @@ export function ChatWidget() {
 
   // Make sure the person opened from a network card or profile has a name to show.
   useEffect(() => {
+    setDeleteError(false);
     if (activeUserId) void loadContacts([activeUserId]);
   }, [activeUserId, loadContacts]);
 
@@ -163,6 +166,30 @@ export function ChatWidget() {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
   }, [thread.length, activeUserId, open]);
 
+  // Removes the whole conversation with the open contact, for both participants.
+  async function deleteChat() {
+    if (!activeUserId || deleting) return;
+    if (!window.confirm(t("Bu söhbət hər iki tərəf üçün silinəcək. Davam edilsin?"))) return;
+    setDeleting(true);
+    setSendError(false);
+    const { data, error } = await supabase
+      .from("messages")
+      .delete()
+      .or(
+        `and(sender_id.eq.${currentUserId},receiver_id.eq.${activeUserId}),and(sender_id.eq.${activeUserId},receiver_id.eq.${currentUserId})`,
+      )
+      .select("id");
+    setDeleting(false);
+    // Row Level Security answers a forbidden delete with zero rows instead of an error.
+    if (error || (thread.length > 0 && !data?.length)) {
+      setDeleteError(true);
+      return;
+    }
+    const removed = new Set((data as { id: string }[]).map((row) => row.id));
+    setMessages((current) => current.filter((message) => !removed.has(message.id)));
+    setActiveUserId(null);
+  }
+
   async function send(event: React.FormEvent) {
     event.preventDefault();
     const content = draft.trim();
@@ -200,6 +227,11 @@ export function ChatWidget() {
                     <p className="truncate text-xs text-white/80">{t(trackLabel(activeContact.track))}</p>
                   )}
                 </div>
+                {thread.length > 0 && (
+                  <button type="button" onClick={deleteChat} disabled={deleting} aria-label={t("Söhbəti sil")} title={t("Söhbəti sil")}>
+                    {deleting ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+                  </button>
+                )}
               </>
             ) : (
               <span className="flex-1 text-sm font-semibold">{t("Mesajlar")}</span>
@@ -236,6 +268,11 @@ export function ChatWidget() {
                   );
                 })}
               </div>
+              {deleteError && (
+                <p role="alert" className="px-3 pb-1 text-xs text-red-700">
+                  {t("Söhbəti silmək mümkün olmadı. Yenidən cəhd edin.")}
+                </p>
+              )}
               {sendError && (
                 <p role="alert" className="px-3 pb-1 text-xs text-red-700">
                   {t("Mesaj göndərilmədi. Yenidən cəhd edin.")}

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, PlayCircle } from "lucide-react";
+import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/constants";
 import type { Translate } from "@/lib/i18n/translate";
 import { createClient } from "@/lib/supabase/client";
 import { useT } from "@/components/i18n/locale-provider";
@@ -34,7 +35,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<"form" | "demo" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const isLogin = mode === "login";
@@ -50,20 +51,20 @@ export function AuthForm({ mode }: { mode: Mode }) {
     router.refresh();
   }
 
-  async function handleSignIn() {
-    setLoading(true);
+  async function handleSignIn(signInEmail: string, signInPassword: string, source: "form" | "demo") {
+    setLoading(source);
     setError(null);
     try {
-      await signIn(email, password);
+      await signIn(signInEmail, signInPassword);
     } catch (err) {
       setError(translateError(err instanceof Error ? err.message : "", t));
-      setLoading(false);
+      setLoading(null);
     }
   }
 
   // Sign-up goes through our route handler, which creates a confirmed user (no email step).
   async function handleSignUp() {
-    setLoading(true);
+    setLoading("form");
     setError(null);
     try {
       const response = await fetch("/api/auth/register", {
@@ -74,19 +75,19 @@ export function AuthForm({ mode }: { mode: Mode }) {
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as { error?: string } | null;
         setError(body?.error ?? t(GENERIC_ERROR));
-        setLoading(false);
+        setLoading(null);
         return;
       }
       await signIn(email, password);
     } catch (err) {
       setError(translateError(err instanceof Error ? err.message : "", t));
-      setLoading(false);
+      setLoading(null);
     }
   }
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (isLogin) void handleSignIn();
+    if (isLogin) void handleSignIn(email, password, "form");
     else void handleSignUp();
   }
 
@@ -174,10 +175,22 @@ export function AuthForm({ mode }: { mode: Mode }) {
           )}
 
           <div className="space-y-3 pt-1">
-            <button type="submit" disabled={loading} className={`${BUTTON} bg-black text-white hover:bg-black/85`}>
-              {loading && <Loader2 className="animate-spin" />}
+            <button type="submit" disabled={loading !== null} className={`${BUTTON} bg-black text-white hover:bg-black/85`}>
+              {loading === "form" && <Loader2 className="animate-spin" />}
               {isLogin ? t("Daxil ol") : t("Qeydiyyatdan keç")}
             </button>
+
+            {isLogin && (
+              <button
+                type="button"
+                disabled={loading !== null}
+                onClick={() => void handleSignIn(DEMO_EMAIL, DEMO_PASSWORD, "demo")}
+                className={`${BUTTON} border border-border bg-white text-foreground hover:bg-[#f4f5f9]`}
+              >
+                {loading === "demo" ? <Loader2 className="animate-spin" /> : <PlayCircle />}
+                {t("Demo hesabı ilə daxil ol")}
+              </button>
+            )}
           </div>
         </form>
       </div>

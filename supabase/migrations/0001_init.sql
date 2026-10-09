@@ -193,6 +193,11 @@ create policy "messages_update_receiver" on public.messages
   using ((select auth.uid()) = receiver_id)
   with check ((select auth.uid()) = receiver_id);
 
+drop policy if exists "messages_delete_participants" on public.messages;
+create policy "messages_delete_participants" on public.messages
+  for delete to authenticated
+  using ((select auth.uid()) in (sender_id, receiver_id));
+
 -- ---------------------------------------------------------------------------
 -- Realtime (chat)
 -- ---------------------------------------------------------------------------

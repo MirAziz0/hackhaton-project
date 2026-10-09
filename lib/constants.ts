@@ -2,6 +2,10 @@ import type { LookingFor, Stage, Track } from "@/types/database";
 
 export const APP_NAME = "Growenta";
 
+// Public demo account created by supabase/seed.sql.
+export const DEMO_EMAIL = "demo@launchlens.az";
+export const DEMO_PASSWORD = "demo12345";
+
 export const TRACKS: { value: Track; label: string; description: string }[] = [
   { value: "cosmetics", label: "Kosmetika", description: "Gözəllik və baxım məhsulları" },
   { value: "food", label: "Qida", description: "Kafe, restoran, qida istehsalı" },
