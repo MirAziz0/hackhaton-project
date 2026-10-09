@@ -1,131 +1,149 @@
 # Growenta
 
-A web platform that guides an entrepreneur from a raw business idea to a running business, with AI at every step. Built for the "AI Enterprise Solutions" hackathon track. The UI is in Azerbaijani; code and comments are in English.
+Growenta takes an entrepreneur in Azerbaijan from a one-sentence idea to a running business: a plan, a checked budget, a place to open, a brand, bookkeeping and people to work with. The interface is in English and Azerbaijani (ENG / AZ switch); the AI answers in the language you pick.
 
-| Section | What it does |
+## The problem and the outcome
+
+Someone starting a small business here needs a plan, a realistic budget, a location, a brand and a way to track money. Today that means a consultant, a spreadsheet and a general-purpose chatbot that knows nothing about the business and invents its numbers. Banks and incubators have the mirror problem: every application arrives in a different shape and takes hours to assess.
+
+| Section | What the user gets |
 |---|---|
-| Onboarding | Seven questions after sign-up; the answers become context for every AI agent |
-| Studiya (Idea Studio) | Turns an idea into a business plan, financial forecast, location suggestions on a map, names, slogans, logos and a banner |
-| Analiz (Business Analysis) | Scores a plan's investment readiness from a saved business, a form or a PDF, with sources for every market figure |
-| Dashboard | Income and expense tracking with charts and an AI assistant that adds transactions and answers questions |
-| Şəbəkə (Network) | AI-recommended entrepreneurs with a reason for each, plus realtime 1:1 chat |
+| Onboarding | Seven questions asked once; every agent reuses the answers, so nothing is typed twice |
+| Studio | From one sentence: business plan, 12-month forecast with break-even, three locations on a map, names, slogans, two logos and a banner |
+| Analysis | An investment readiness score (0–100) for a saved plan, a form or a PDF, with SWOT, budget check, competitors and a source for every market figure |
+| Dashboard | Income and expense tracking, charts, plan versus actual, and an assistant that records transactions from plain language and answers questions with exact numbers |
+| Network | Five recommended entrepreneurs with a reason for each, plus realtime 1:1 chat |
 
-Enterprise angle: banks and incubators can use the same analysis to evaluate SME loan applications and startup plans faster.
+The same Analysis report is what a bank or incubator would read to compare SME applications by one set of criteria.
 
-**Stack:** Next.js 15 (App Router, TypeScript), Tailwind CSS v4 with shadcn-style components, Recharts, Leaflet, Supabase (Auth, Postgres, Realtime, Storage), OpenAI for the agents, Gemini for images, Tavily for web search.
+## What the AI does, and what it is not trusted with
+
+The model writes and judges; code counts, looks things up and checks the model's output.
+
+| Feature | The model | Code |
+|---|---|---|
+| Studio (`lib/ai/studio.ts`) | Asks up to 3 clarifying questions, writes the plan, cost items, revenue estimate, location picks, names, slogans | Totals, projection and break-even (`lib/finance/forecast.ts`); map coordinates from a fixed list (`lib/places.ts`) |
+| Branding (`lib/ai/branding.ts`) | Generates 2 logos and a banner | Stores them; falls back to SVG placeholders when the image API fails |
+| Analysis (`lib/ai/analysis.ts`) | Scores readiness and market fit, writes SWOT, budget check, competitors, recommendations | Picks market rows by sector, runs web search, numbers the sources, drops citations it did not provide, takes market values from the database row |
+| Dashboard assistant (`app/api/assistant`) | Chooses a tool, explains the result, parses a transaction from a sentence | Every sum, percentage, comparison and what-if (`lib/finance/dashboard.ts`); a transaction is saved only after the user confirms it |
+| Matching (`lib/ai/matching.ts`) | Ranks the best 5 of up to 12 candidates and writes one reason each | Pre-filters in SQL, checks returned ids, falls back to a rule-based order |
+
+Every agent returns JSON validated with Zod and retries once with the validation error. Prompts are in `lib/ai/prompts.ts`.
+
+## Quality testing
+
+### Automated tests
+
+```bash
+npm test
+```
+
+16 tests in `tests/` cover the parts that must never be wrong: the finance functions behind every number the assistant quotes, forecast break-even, period parsing, coordinate checks, the non-AI matching order, date and money formatting, and the English dictionary (no empty text, no placeholder the source does not supply). `npm run lint` and `npx tsc --noEmit` are clean.
+
+There is no automated scoring of the AI's writing yet. Plan and analysis quality has only been checked by hand on the demo business.
+
+### Failure modes and what happens
+
+| What goes wrong | What the app does |
+|---|---|
+| The model returns JSON that does not match the schema | One retry with the validation error; a second failure shows a friendly error instead of a broken page |
+| The model does arithmetic or guesses a total | It has no way to: totals come from tools, and the prompt forbids stating a number without a tool result |
+| The model cites a source that does not exist | Citation ids not issued by the server are removed; a figure without a valid source is labelled "estimate" |
+| The model invents coordinates, or a place outside Azerbaijan | A known place id overrides them; out-of-bounds coordinates fall back to the user's city centre |
+| The model asks for a period it made up ("last week") | The tool returns an error naming the valid periods, and the model corrects itself |
+| The model returns a profile id that was not in the candidate list | The id is ignored and the list is topped up from the rule-based order |
+| The assistant misreads a transaction | Nothing is saved until the user confirms the card |
+| Image API has no quota, web search has no key | SVG placeholders with a notice; competitors described by type instead of by name |
+| A scanned PDF with no text layer | Rejected with a message asking for the form instead (no OCR) |
+
+### Known limits
+
+- The seeded `market_data` rows are demo placeholders (their source names start with "DEMO"). The analysis is only as good as these rows; replace them with real figures before trusting a score.
+- Early in a month the KPIs compare a partial month with a full one and show large negative changes.
+- Plans, analyses and categories saved in one language stay in that language after switching.
+- Deleting a chat removes it for both people, and the other person sees it only after a reload.
+
+### Compared with how this is done now
+
+| | Consultant + spreadsheet | General chatbot | Growenta |
+|---|---|---|---|
+| Knows the business | After interviews | Only what is pasted each time | From onboarding and saved data |
+| Numbers | Correct, slow | Often invented or miscalculated | Calculated in code |
+| Market claims | Sourced, if the consultant is careful | Unsourced | Sourced or marked as an estimate |
+| After the plan | Separate bookkeeping | Nothing | Dashboard measures actuals against the plan |
+
+This comparison is by design, not a measured study: there has been no side-by-side trial with users yet.
+
+## Feasibility
+
+**Data it needs.** Per user: the seven onboarding answers, and transactions typed or dictated to the assistant. Shared: market figures per sector and region in `market_data`, which should come from stat.gov.az and the World Bank. A plan can also be uploaded as a text PDF up to 4 MB.
+
+**Running costs.** Supabase and Vercel free tiers are enough for a pilot. The variable cost is model usage; sizes below are estimates from prompt lengths, not billing data.
+
+| Action | Calls | Rough size |
+|---|---|---|
+| Studio plan | 1 short call for questions + 1 plan call | about 2k tokens in, 3k out |
+| Branding | 3 image generations | optional; placeholders if switched off |
+| Analysis | 1 call (+ 1 web search) | up to about 6k tokens in, 2k out |
+| Assistant message | 1–3 calls on `gpt-4.1-mini` | about 1.5k tokens in each |
+| Matching | 1 short call, cached in the browser for 6 hours | about 1.5k tokens in |
+
+The assistant is the high-volume feature, so it runs on a cheaper model (`LLM_ASSISTANT_MODEL`); plan and analysis keep the stronger one (`LLM_MODEL`).
+
+**Next step.** Load real market data for the four covered sectors, then pilot with a small group of entrepreneurs and one bank or incubator, comparing the readiness score with their own assessment of the same plans.
+
+## What is different
+
+- Onboarding context is shared by every agent, so the product behaves like one advisor rather than five tools.
+- Arithmetic is never delegated to the model, and every market figure is either sourced or labelled.
+- The plan does not end as a document: the dashboard tracks real income against the forecast the Studio produced.
+- Local by default: Azerbaijani and English, AZN, Baku districts and regional cities with fixed coordinates.
+- One report serves both sides, the entrepreneur and the bank or incubator assessing them.
 
 ## Setup
 
-### 1. Install
+**Stack:** Next.js 15 (App Router, TypeScript), Tailwind CSS v4, Recharts, Leaflet, Supabase (Auth, Postgres, Realtime, Storage), OpenAI for the agents and images, Tavily for web search.
 
-```bash
-npm install
-```
-
-### 2. Create a Supabase project
-
-1. Create a project at https://supabase.com/dashboard.
-2. **Project Settings → API**: copy the project URL, the `anon` key and the `service_role` key.
-
-### 3. Environment variables
-
-Copy `.env.example` to `.env.local` and fill it in.
+1. `npm install`
+2. Create a project at https://supabase.com/dashboard and copy the URL, the `anon` key and the `service_role` key from **Project Settings → API**.
+3. Copy `.env.example` to `.env.local` and fill it in.
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public key used by the browser and server clients |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase project and public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only admin key (sign-up, image and PDF storage). Never expose it to the client |
-| `OPENAI_API_KEY`, `LLM_MODEL` | Yes | OpenAI model used by all five agents, called only from route handlers |
-| `IMAGE_PROVIDER`, `IMAGE_MODEL`, `IMAGE_API_KEY` | No | Logo and banner generation (`gemini` or `openai`). Without a working key the app shows SVG placeholders |
-| `SEARCH_PROVIDER`, `SEARCH_API_KEY` | No | Web search for competitor research (`tavily`). Without a key competitors are described by type, not by name |
+| `OPENAI_API_KEY`, `LLM_MODEL` | Yes | Model for the Studio, Analysis and Matching agents |
+| `LLM_ASSISTANT_MODEL` | No | Model for the dashboard assistant (default `gpt-4.1-mini`) |
+| `IMAGE_PROVIDER`, `IMAGE_MODEL`, `IMAGE_API_KEY` | No | Logo and banner generation (`openai` by default, or `gemini`). Without a working key the app shows SVG placeholders |
+| `SEARCH_PROVIDER`, `SEARCH_API_KEY` | No | Web search for competitors (`tavily`) |
 
-### 4. Run the migration and the seed
+4. In the Supabase **SQL Editor** run, in order: `supabase/migrations/0001_init.sql`, `supabase/migrations/0002_messages_delete.sql`, then `supabase/seed.sql` (demo users, market data, the "Nur Cosmetics" business with six months of transactions). All are safe to re-run.
+5. `npm run dev` and open http://localhost:3000.
 
-In the Supabase dashboard open **SQL Editor** and run, in this order:
+Demo login: the "Sign in with the demo account" button, or `demo@launchlens.az` / `demo12345`. If it fails after seeding, run `npm run seed:demo`.
 
-1. `supabase/migrations/0001_init.sql` — tables, indexes, RLS policies, storage buckets, realtime.
-2. `supabase/seed.sql` — demo users, market data, the "Nur Cosmetics" business with 6 months of transactions, demo messages.
-
-Both files are safe to re-run. The market data rows are **demo placeholders** and must be replaced with real figures (stat.gov.az, World Bank) before the pitch.
-
-Demo login: `demo@launchlens.az` / `demo12345` (also available as the "Demo hesabı ilə daxil ol" button). If that login fails after seeding, run `npm run seed:demo` to reset the demo password through the admin API.
-
-### 5. Start the app
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000.
-
-### 6. Deploy to Vercel
-
-1. Import the GitHub repository in Vercel.
-2. Add every variable from `.env.local` under **Settings → Environment Variables** (the file itself is not deployed), then redeploy.
-3. Under **Settings → Functions**, pick the function region closest to your Supabase project's region. Each page load makes at least one Supabase query, so a distant region adds noticeable delay.
-4. Share the production domain, not a `...-git-main-...` preview URL: preview URLs require a Vercel login unless Deployment Protection is turned off.
-
-PDF uploads are capped at 4 MB because Vercel rejects request bodies above 4.5 MB.
-
-## Before the demo
-
-- Replace the demo rows in `market_data` with real figures; their source names start with "DEMO".
-- Check that image generation works with your key. If the Brendinq tab shows a notice about sample visuals, the image API rejected the request (for example, no quota on a free Gemini key).
-- Sign in once with the demo account and open Studiya → Nur Cosmetics, Analiz → "Nəticəyə bax" and the Dashboard, so the saved plan and analysis are there as a fallback if the network is slow on stage.
-- The current month's KPIs compare a partial month with a full one, so early in a month they show large negative changes.
+**Deploying to Vercel:** import the repository, add every variable from `.env.local` under **Settings → Environment Variables**, and pick the function region closest to the Supabase project.
 
 ## Architecture
 
 ```
 app/
-  (auth)/login, register     Supabase email/password auth + demo login
-  api/auth/register          Creates confirmed users (no email verification step)
-  api/studio, api/branding   Idea Studio agent and branding image generation
-  api/analysis               Business Analysis agent (saved business, form or PDF upload)
-  api/assistant              Dashboard assistant: streaming tool-use loop
-  api/matching               Matching agent: SQL pre-filter, then LLM ranking with reasons
+  (auth)/login, register     Email/password auth + demo login
+  api/                       studio, branding, analysis, assistant, matching, auth/register
   onboarding/                7-step questionnaire, saved to profiles
-  (app)/                     Authenticated shell: sidebar + chat widget
+  (app)/                     Signed-in shell: top navigation + chat widget
     studio, analysis, dashboard, network, profile/[id]
-components/
-  ui/                        shadcn-style primitives
-  auth/, onboarding/, layout/, chat/, studio/, analysis/, dashboard/, network/
+components/                  ui primitives and one folder per section; i18n/ holds the language switch
 lib/
+  ai/                        prompts, Zod schemas, agents, image generation, web search
+  finance/                   forecast and dashboard arithmetic
+  i18n/                      language config, translator, English dictionary (en.ts)
   supabase/                  browser, server, admin and middleware clients
-  ai/                        prompts, Zod schemas, LLM helper, Studio and Branding agents, image generation
-  finance/                   forecast and dashboard arithmetic (done in code, not by the LLM)
-  analysis/                  plan-to-text helpers and PDF text extraction
-  places.ts                  known locations with fixed map coordinates
-  network.ts                 public profile fields, related tracks, candidate ordering
-  constants.ts               tracks, stages, budgets, locations (Azerbaijani labels)
-types/                       shared row and JSON types
-supabase/                    SQL migration and seed
-middleware.ts                refreshes the session and guards routes
+  places.ts, network.ts      fixed map coordinates; candidate filtering and fallback reasons
+tests/                       unit tests (npm test)
+supabase/                    SQL migrations and seed
 ```
 
-- **Auth and routing:** the middleware redirects signed-out users to `/login`. The `(app)` layout sends users who have not finished onboarding to `/onboarding`; after onboarding they land on `/studio`, `/analysis` or `/dashboard` depending on their stage.
-- **Data access:** Row Level Security restricts every table to its owner, except that profiles are readable by all signed-in users and messages by their sender and receiver.
-- **AI:** all LLM, image and search calls live in `lib/ai/` and run only inside route handlers under `app/api/`. Prompts are in `lib/ai/prompts.ts`. Every agent returns JSON validated with Zod and retries once with the validation error.
-
-## Where the AI is used
-
-| Feature | Agent | What the model does | What code does |
-|---|---|---|---|
-| Idea Studio | Studio agent (`lib/ai/studio.ts`) | Asks 2-3 clarifying questions, then writes the plan, cost items, 12-month revenue estimate, location picks, names and slogans | Totals, monthly projection and break-even (`lib/finance/forecast.ts`); map coordinates from a fixed list (`lib/places.ts`) |
-| Branding | Branding agent (`lib/ai/branding.ts`) | Generates 2 logos and a banner from prompts built out of the plan | Stores images in Supabase Storage; falls back to SVG placeholders when no image API is available |
-| Business Analysis | Analysis agent (`lib/ai/analysis.ts`) | Scores investment readiness and market fit, writes SWOT, budget check, competitors and recommendations, citing numbered sources | Selects `market_data` rows by sector, runs `webSearch`, validates every cited source id, takes market figures from the database row, and labels unsourced numbers "təxmini" |
-| Dashboard | Dashboard assistant (`app/api/assistant`, `lib/ai/assistant-tools.ts`) | Chooses a tool, then explains the result in Azerbaijani; parses transactions from natural language | Every sum, percentage, comparison and what-if scenario (`lib/finance/dashboard.ts`); a parsed transaction is saved only after the user confirms it on a card |
-| Network | Matching agent (`lib/ai/matching.ts`) | Ranks the best 5 of ~15 candidates and writes a one-sentence reason for each | Pre-filters candidates in SQL (own and related tracks, excluding the user), checks returned ids against the candidate list, and falls back to a rule-based order if the model fails |
-
-### Chat
-
-The floating chat widget reads and writes the `messages` table directly from the browser under Row Level Security (only the sender and receiver can read a message, only the sender can insert it, only the receiver can mark it read). New messages arrive through a Supabase Realtime subscription filtered on `receiver_id`. Any page can open a thread through `useChat().openChatWith(userId)`.
-
-### How the dashboard assistant stays out of the math
-
-The assistant has six tools: `get_summary`, `get_expenses_by_category`, `compare_periods`, `get_monthly_trend`, `simulate_price_change` and `add_transaction`. The route handler runs a streaming loop: the model picks a tool, TypeScript computes the result from the business's transactions, and the model turns that result into a short answer. `add_transaction` never writes to the database; it returns a proposal that the interface shows as an "Əlavə edilsin?" card, and the row is inserted only when the user confirms. KPIs and charts are derived from the same functions on the client, so they update as soon as a transaction changes.
-
-### How sources are enforced
-
-The Analysis agent only sees sources that the server numbered for it (`[M1]` for `market_data` rows, `[W1]` for web results). After the model answers, code drops any citation whose id was not provided, replaces the value of each market figure with the value stored in the database, and marks every figure without a valid source as an estimate. Figures quoted from the user's own plan are labelled "plandan". Without `SEARCH_API_KEY` the web search returns nothing and competitors are described by type instead of by name.
+- **Access:** the middleware sends signed-out users to `/login`. Row Level Security limits every table to its owner; profiles are readable by signed-in users and messages by their two participants.
+- **Languages:** the Azerbaijani text in the code is the key, and `lib/i18n/en.ts` holds the English. The choice is stored in a `lang` cookie, so pages, API errors and agents agree.
+- **Chat:** the widget reads and writes `messages` from the browser under RLS and receives new ones through Supabase Realtime.
