@@ -15,6 +15,7 @@ export async function clarifyIdea(profile: Profile, idea: string): Promise<strin
     schema: clarifySchema,
     system: STUDIO_CLARIFY_SYSTEM,
     user: studioUserPrompt(profile, idea),
+    fast: true,
   });
   return output.needs_clarification ? output.questions.slice(0, 3) : [];
 }

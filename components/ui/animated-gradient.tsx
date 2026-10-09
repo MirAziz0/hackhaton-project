@@ -164,6 +164,9 @@ interface AnimatedGradientProps {
   radius?: string;
   style?: CSSProperties;
   className?: string;
+  // Upper bound for the canvas pixel ratio. The gradient is soft, so drawing a full-screen
+  // background at 1x instead of a laptop's 2x cuts the GPU work to a quarter with no visible loss.
+  maxPixelRatio?: number;
 }
 
 export default function AnimatedGradient({
@@ -172,6 +175,7 @@ export default function AnimatedGradient({
   radius = "0px",
   style,
   className,
+  maxPixelRatio,
 }: AnimatedGradientProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -273,10 +277,12 @@ export default function AnimatedGradient({
       u_swirlIterations: gl.getUniformLocation(program, "u_swirlIterations"),
     };
 
+    const effectivePixelRatio = () => Math.min(window.devicePixelRatio || 1, maxPixelRatio ?? Infinity);
+
     const resize = () => {
       const width = container.clientWidth;
       const height = container.clientHeight;
-      const pixelRatio = window.devicePixelRatio || 1;
+      const pixelRatio = effectivePixelRatio();
       canvas.width = width * pixelRatio;
       canvas.height = height * pixelRatio;
       canvas.style.width = `${width}px`;
@@ -296,7 +302,7 @@ export default function AnimatedGradient({
 
       gl.uniform1f(uniforms.u_time, elapsed * speed + params.offset * 0.01);
       gl.uniform2f(uniforms.u_resolution, canvas.width, canvas.height);
-      gl.uniform1f(uniforms.u_pixelRatio, window.devicePixelRatio || 1);
+      gl.uniform1f(uniforms.u_pixelRatio, effectivePixelRatio());
       gl.uniform1f(uniforms.u_scale, params.scale);
       gl.uniform1f(uniforms.u_rotation, (params.rotation * Math.PI) / 180);
 
@@ -334,7 +340,7 @@ export default function AnimatedGradient({
       gl.deleteShader(fragmentShader);
       gl.deleteBuffer(positionBuffer);
     };
-  }, [isMounted, params]);
+  }, [isMounted, params, maxPixelRatio]);
 
   return (
     <div

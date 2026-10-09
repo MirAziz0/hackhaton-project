@@ -1,3 +1,4 @@
+import { lookingForLabel, trackLabel } from "@/lib/constants";
 import type { LookingFor, Stage, Track } from "@/types/database";
 
 // Profile fields that other signed-in users may see (budget is deliberately left out).
@@ -34,7 +35,7 @@ export const RELATED_TRACKS: Record<Track, Track[]> = {
   other: ["it_services", "education", "cosmetics", "food", "clothing"],
 };
 
-export const MATCH_CANDIDATE_LIMIT = 15;
+export const MATCH_CANDIDATE_LIMIT = 12;
 export const MATCH_RESULT_LIMIT = 5;
 
 // Orders pre-filtered candidates: same track first, then the same city, then related tracks.
@@ -44,4 +45,33 @@ export function rankCandidates(me: PublicProfile, candidates: PublicProfile[]) {
     (candidate.city && me.city && candidate.city.split(",")[0] === me.city.split(",")[0] ? 1 : 0) +
     (candidate.bio ? 1 : 0);
   return [...candidates].sort((a, b) => score(b) - score(a)).slice(0, MATCH_CANDIDATE_LIMIT);
+}
+
+// The candidates the Matching agent considers: the user's own track plus related ones.
+export function matchCandidates(me: PublicProfile, others: PublicProfile[]) {
+  const own = me.track ?? "other";
+  const tracks: string[] = [own, ...RELATED_TRACKS[own]];
+  return rankCandidates(
+    me,
+    others.filter((profile) => profile.id !== me.id && profile.track !== null && tracks.includes(profile.track)),
+  );
+}
+
+// One-sentence reason built only from profile facts. Shown while the AI ranking is still
+// loading and whenever it is unavailable.
+export function fallbackReason(me: PublicProfile, candidate: PublicProfile) {
+  const looking = candidate.looking_for?.length
+    ? `${candidate.looking_for.map(lookingForLabel).join(", ").toLowerCase()} axtarır`
+    : null;
+  const intro =
+    candidate.track === me.track
+      ? `Siz də ${trackLabel(candidate.track).toLowerCase()} sahəsində fəaliyyət göstərirsiniz`
+      : `${trackLabel(candidate.track)} sahəsində fəaliyyət göstərir`;
+  return looking ? `${intro}, o isə ${looking}.` : `${intro}.`;
+}
+
+export function fallbackMatches(me: PublicProfile, candidates: PublicProfile[]): Match[] {
+  return candidates
+    .slice(0, MATCH_RESULT_LIMIT)
+    .map((profile) => ({ profile, reason: fallbackReason(me, profile), ai: false }));
 }

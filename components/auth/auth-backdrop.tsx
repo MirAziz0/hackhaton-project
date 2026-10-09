@@ -43,6 +43,7 @@ export function AuthBackdrop({ variant }: AuthBackdropProps) {
     <AnimatedGradient
       config={config}
       noise={{ opacity: 0.2, scale: 1 }}
+      maxPixelRatio={1}
       // The page copy is dimmed so the card stands out; the panel copy keeps its full colour.
       style={variant === "page" ? { position: "fixed", opacity: 0.6 } : undefined}
     />

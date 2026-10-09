@@ -1,12 +1,14 @@
 import "server-only";
 import { z } from "zod";
-import { getLlmModel, getOpenAI } from "@/lib/ai/client";
+import { getFastLlmModel, getLlmModel, getOpenAI } from "@/lib/ai/client";
 import { AI_GENERIC_ERROR, AiError } from "@/lib/ai/errors";
 
 interface GenerateJsonOptions<T> {
   schema: z.ZodType<T>;
   system: string;
   user: string;
+  // Use the quicker LLM_FAST_MODEL for this call.
+  fast?: boolean;
 }
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
@@ -16,8 +18,8 @@ function reasoningOptions(model: string) {
   return /^(gpt-5|o\d)/.test(model) ? { reasoning_effort: "low" as const } : {};
 }
 
-async function complete(messages: ChatMessage[]) {
-  const model = getLlmModel();
+async function complete(messages: ChatMessage[], fast: boolean) {
+  const model = fast ? getFastLlmModel() : getLlmModel();
   const openai = getOpenAI(); // throws its own friendly error when the key is missing
   try {
     const response = await openai.chat.completions.create({
@@ -54,13 +56,13 @@ function parse<T>(schema: z.ZodType<T>, raw: string): { data: T } | { error: str
 
 // Asks the model for strict JSON and validates it with Zod.
 // On a validation failure it retries once, sending the validation error back to the model.
-export async function generateJson<T>({ schema, system, user }: GenerateJsonOptions<T>): Promise<T> {
+export async function generateJson<T>({ schema, system, user, fast = false }: GenerateJsonOptions<T>): Promise<T> {
   const messages: ChatMessage[] = [
     { role: "system", content: system },
     { role: "user", content: user },
   ];
 
-  const firstRaw = await complete(messages);
+  const firstRaw = await complete(messages, fast);
   const first = parse(schema, firstRaw);
   if ("data" in first) return first.data;
 
@@ -72,7 +74,7 @@ export async function generateJson<T>({ schema, system, user }: GenerateJsonOpti
       role: "user",
       content: `Your JSON did not pass validation:\n${first.error}\n\nReturn the complete corrected JSON object only.`,
     },
-  ]);
+  ], fast);
   const second = parse(schema, secondRaw);
   if ("data" in second) return second.data;
 

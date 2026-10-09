@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
-import { fallbackMatches, rankMatches } from "@/lib/ai/matching";
-import { PUBLIC_PROFILE_COLUMNS, RELATED_TRACKS, rankCandidates, type PublicProfile } from "@/lib/network";
+import { rankMatches } from "@/lib/ai/matching";
+import {
+  PUBLIC_PROFILE_COLUMNS,
+  RELATED_TRACKS,
+  fallbackMatches,
+  rankCandidates,
+  type PublicProfile,
+} from "@/lib/network";
 import { getSessionProfile } from "@/lib/supabase/server";
 
 export const maxDuration = 60;

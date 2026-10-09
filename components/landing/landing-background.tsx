@@ -39,7 +39,7 @@ export function LandingBackground() {
 
   return (
     <>
-      <AnimatedGradient config={config} noise={{ opacity: 0.25, scale: 1 }} style={{ position: "fixed" }} />
+      <AnimatedGradient config={config} noise={{ opacity: 0.25, scale: 1 }} style={{ position: "fixed" }} maxPixelRatio={1} />
       {/* A thin dark veil over the gradient so white text stays readable on the bright beams. */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-[1] bg-[#07061a]/45" />
     </>

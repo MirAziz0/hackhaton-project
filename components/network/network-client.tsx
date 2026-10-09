@@ -1,61 +1,73 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshCw, Users } from "lucide-react";
+import { Loader2, RefreshCw, Sparkles, Users } from "lucide-react";
 import { EntrepreneurCard } from "@/components/network/entrepreneur-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { TRACKS } from "@/lib/constants";
-import type { Match, PublicProfile } from "@/lib/network";
+import { fallbackMatches, matchCandidates, type Match, type PublicProfile } from "@/lib/network";
 import { cn } from "@/lib/utils";
 
-const GENERIC_ERROR = "Tövsiyələri yükləmək mümkün olmadı. Zəhmət olmasa yenidən cəhd edin.";
+// How long an AI ranking stays valid in this browser before it is computed again.
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
+interface CachedMatches {
+  savedAt: number;
+  matches: Match[];
+}
 
 interface NetworkClientProps {
-  userId: string;
+  me: PublicProfile;
   directory: PublicProfile[];
 }
 
-export function NetworkClient({ userId, directory }: NetworkClientProps) {
-  const cacheKey = `launchlens-matches-${userId}`;
-  const [matches, setMatches] = useState<Match[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function NetworkClient({ me, directory }: NetworkClientProps) {
+  const cacheKey = `launchlens-matches-${me.id}`;
+
+  // Shown immediately: the rule-based order, computed in the browser from data already on the
+  // page. The AI ranking replaces it as soon as it arrives, so the section is never empty.
+  const instant = useMemo(() => fallbackMatches(me, matchCandidates(me, directory)), [me, directory]);
+
+  const [aiMatches, setAiMatches] = useState<Match[] | null>(null);
+  const [refining, setRefining] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [track, setTrack] = useState("all");
 
-  // The AI ranking costs a model call, so it is kept for the browser session and only
-  // recomputed when the user asks for it.
   const load = useCallback(
     async (force: boolean) => {
-      setError(null);
+      setFailed(false);
       if (!force) {
         try {
-          const cached = sessionStorage.getItem(cacheKey);
-          if (cached) {
-            setMatches(JSON.parse(cached) as Match[]);
-            setLoading(false);
+          const cached = JSON.parse(localStorage.getItem(cacheKey) ?? "null") as CachedMatches | null;
+          if (cached && Date.now() - cached.savedAt < CACHE_TTL_MS && cached.matches.length) {
+            setAiMatches(cached.matches);
             return;
           }
         } catch {
           // ignore a broken cache entry and fetch again
         }
       }
-      setLoading(true);
+      setRefining(true);
       try {
         const response = await fetch("/api/matching");
-        const json = (await response.json().catch(() => null)) as { matches?: Match[]; error?: string } | null;
-        if (!response.ok || !json?.matches) throw new Error(json?.error ?? GENERIC_ERROR);
-        setMatches(json.matches);
-        try {
-          sessionStorage.setItem(cacheKey, JSON.stringify(json.matches));
-        } catch {
-          // storage may be unavailable; the page still works without the cache
+        const json = (await response.json().catch(() => null)) as { matches?: Match[] } | null;
+        if (!response.ok || !json?.matches) throw new Error("matching failed");
+        // Only a real AI ranking replaces the instant list and gets cached.
+        if (json.matches.some((match) => match.ai)) {
+          setAiMatches(json.matches);
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify({ savedAt: Date.now(), matches: json.matches }));
+          } catch {
+            // storage may be unavailable; the page still works without the cache
+          }
+        } else {
+          setFailed(true);
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : GENERIC_ERROR);
+      } catch {
+        setFailed(true);
       } finally {
-        setLoading(false);
+        setRefining(false);
       }
     },
     [cacheKey],
@@ -65,12 +77,12 @@ export function NetworkClient({ userId, directory }: NetworkClientProps) {
     void load(false);
   }, [load]);
 
+  const matches = aiMatches ?? instant;
   const availableTracks = useMemo(
     () => TRACKS.filter((item) => directory.some((profile) => profile.track === item.value)),
     [directory],
   );
   const filtered = track === "all" ? directory : directory.filter((profile) => profile.track === track);
-  const usedFallback = matches?.some((match) => !match.ai) ?? false;
 
   return (
     <div className="space-y-10">
@@ -78,39 +90,36 @@ export function NetworkClient({ userId, directory }: NetworkClientProps) {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">Sizə uyğun sahibkarlar</h2>
-            <p className="text-sm text-muted-foreground">
-              Süni intellekt profilinizə əsasən ən faydalı əlaqələri seçir və səbəbini izah edir.
+            <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground" aria-live="polite">
+              {refining ? (
+                <>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Süni intellekt tövsiyələri dəqiqləşdirir…
+                </>
+              ) : aiMatches ? (
+                <>
+                  <Sparkles className="size-3.5 text-primary" />
+                  Süni intellekt profilinizə əsasən ən faydalı əlaqələri seçib və səbəbini izah edir.
+                </>
+              ) : failed ? (
+                "AI tövsiyəsi hazırda əlçatan deyil, sahə və şəhərə görə sıralama göstərilir."
+              ) : (
+                "Sahə və şəhərə görə ilkin sıralama."
+              )}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void load(true)} disabled={loading}>
-            <RefreshCw className={cn(loading && "animate-spin")} />
+          <Button variant="outline" size="sm" onClick={() => void load(true)} disabled={refining}>
+            <RefreshCw className={cn(refining && "animate-spin")} />
             Yenilə
           </Button>
         </div>
 
-        {loading ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-            {Array.from({ length: 5 }, (_, index) => (
-              <Skeleton key={index} className="h-64" />
+        {matches.length ? (
+          <div className={cn("grid gap-4 transition-opacity sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5", refining && "opacity-80")}>
+            {matches.map((match) => (
+              <EntrepreneurCard key={match.profile.id} profile={match.profile} reason={match.reason} />
             ))}
           </div>
-        ) : error ? (
-          <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
-          </p>
-        ) : matches?.length ? (
-          <>
-            {usedFallback && (
-              <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                AI tövsiyəsi hazırda əlçatan deyil, ona görə sahə və şəhərə görə sıralama göstərilir.
-              </p>
-            )}
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-              {matches.map((match) => (
-                <EntrepreneurCard key={match.profile.id} profile={match.profile} reason={match.reason} />
-              ))}
-            </div>
-          </>
         ) : (
           <EmptyState text="Sahənizə uyğun sahibkar hələ tapılmadı. Aşağıdakı siyahıya baxın." />
         )}

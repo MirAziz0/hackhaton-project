@@ -129,15 +129,15 @@
 }
 
 .page-transition > * {
-  animation: page-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation: page-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .page-transition > *:nth-child(2) {
-  animation-delay: 0.06s;
+  animation-delay: 0.03s;
 }
 
 .page-transition > *:nth-child(n + 3) {
-  animation-delay: 0.12s;
+  animation-delay: 0.06s;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -10,18 +10,22 @@ export default async function NetworkPage() {
   const { supabase, user } = await getAuth();
   if (!user) redirect("/login");
 
+  // One query returns everyone, including the signed-in user, whose row drives the matching.
   const { data } = await supabase
     .from("profiles")
     .select(PUBLIC_PROFILE_COLUMNS)
-    .neq("id", user.id)
     .eq("onboarding_completed", true)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(101);
+
+  const everyone = (data as unknown as PublicProfile[] | null) ?? [];
+  const me = everyone.find((profile) => profile.id === user.id);
+  if (!me) redirect("/onboarding");
 
   return (
     <>
       <PageHeader title="Şəbəkə" description="Sizə uyğun sahibkarları tapın və əlaqə qurun." />
-      <NetworkClient userId={user.id} directory={(data as unknown as PublicProfile[] | null) ?? []} />
+      <NetworkClient me={me} directory={everyone.filter((profile) => profile.id !== user.id)} />
     </>
   );
 }

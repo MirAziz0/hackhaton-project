@@ -96,6 +96,8 @@ export function TopNav({ profile }: { profile: Profile }) {
             <Link
               key={baseHref}
               href={href}
+              // Load the whole page (data included) ahead of the click, so switching is instant.
+              prefetch
               ref={(element) => {
                 linkRefs.current[baseHref] = element;
               }}
