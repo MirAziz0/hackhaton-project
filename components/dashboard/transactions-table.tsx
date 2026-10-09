@@ -10,7 +10,7 @@ import { cn, formatAZN } from "@/lib/utils";
 import type { Transaction, TransactionType } from "@/types/database";
 
 const SELECT_CLASS =
-  "h-9 rounded-md border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
+  "h-9 rounded-full border border-input bg-card px-3.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -81,14 +81,14 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
         {visible.length ? (
           <div className="max-h-[28rem] overflow-auto">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-card text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr className="border-b">
-                  <th className="py-2 pr-4 font-medium">Tarix</th>
+              <thead className="sticky top-0 bg-[#e6f9ea] text-left text-xs text-foreground/70">
+                <tr>
+                  <th className="rounded-l-full py-2.5 pl-4 pr-4 font-medium">Tarix</th>
                   <th className="py-2 pr-4 font-medium">Növ</th>
                   <th className="py-2 pr-4 font-medium">Kateqoriya</th>
                   <th className="py-2 pr-4 font-medium">Qeyd</th>
                   <th className="py-2 pr-4 text-right font-medium">Məbləğ</th>
-                  <th className="py-2 font-medium">
+                  <th className="rounded-r-full py-2.5 pr-4 font-medium">
                     <span className="sr-only">Əməliyyatlar</span>
                   </th>
                 </tr>
@@ -96,7 +96,7 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
               <tbody className="divide-y">
                 {visible.map((tx) => (
                   <tr key={tx.id} className="hover:bg-muted/40">
-                    <td className="whitespace-nowrap py-2.5 pr-4">{formatDate(tx.date)}</td>
+                    <td className="whitespace-nowrap py-3 pl-4 pr-4">{formatDate(tx.date)}</td>
                     <td className="py-2.5 pr-4">
                       <Badge variant={tx.type === "income" ? "success" : "warning"}>
                         {tx.type === "income" ? "Gəlir" : "Xərc"}
@@ -115,7 +115,7 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
                       {tx.type === "income" ? "+" : "−"}
                       {formatAZN(tx.amount)}
                     </td>
-                    <td className="whitespace-nowrap py-2.5 text-right">
+                    <td className="whitespace-nowrap py-3 pr-2 text-right">
                       {confirmingId === tx.id ? (
                         <span className="inline-flex items-center gap-1">
                           <Button

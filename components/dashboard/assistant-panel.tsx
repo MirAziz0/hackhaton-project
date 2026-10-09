@@ -143,9 +143,9 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
   }
 
   return (
-    <aside className="flex h-full flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+    <aside className="flex h-full flex-col overflow-hidden rounded-xl border border-white/70 bg-card shadow-card">
       <div className="flex items-center gap-2.5 border-b px-4 py-3">
-        <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <span className="bg-brand flex size-9 items-center justify-center rounded-full text-primary-foreground">
           <Sparkles className="size-4" />
         </span>
         <div>
@@ -156,8 +156,17 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
 
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto p-4" aria-live="polite">
         {messages.length === 0 && (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
+          <div className="space-y-4">
+            {/* Decorative orb, echoing the assistant card in the reference design. */}
+            <div
+              aria-hidden
+              className="mx-auto mt-2 size-24 rounded-full shadow-[0_18px_40px_-14px_rgb(109_61_245/0.55)]"
+              style={{
+                background:
+                  "radial-gradient(circle at 30% 28%, #ffffff 0%, #d9ccff 28%, #9b7bff 58%, #7be0d0 100%)",
+              }}
+            />
+            <p className="text-center text-sm text-muted-foreground">
               Salam! Satış və xərclərinizi sadə dillə yazın, mən onları qeyd edim. Maliyyəniz haqqında sual da verə bilərsiniz.
             </p>
             <div className="flex flex-col gap-2">
@@ -166,7 +175,7 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
                   key={suggestion}
                   type="button"
                   onClick={() => void send(suggestion)}
-                  className="rounded-lg border bg-muted/40 px-3 py-2 text-left text-sm transition-colors hover:border-primary/50 hover:bg-secondary"
+                  className="flex items-center gap-2 rounded-full bg-muted px-4 py-2.5 text-left text-sm transition-colors hover:bg-secondary hover:text-secondary-foreground"
                 >
                   {suggestion}
                 </button>
@@ -230,7 +239,7 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
           event.preventDefault();
           void send(draft);
         }}
-        className="flex gap-2 border-t p-3"
+        className="flex gap-2 border-t bg-muted/50 p-3"
       >
         <Input
           value={draft}
@@ -239,8 +248,9 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
           maxLength={2000}
           aria-label="AI köməkçiyə mesaj"
         />
-        <Button type="submit" size="icon" className="shrink-0" disabled={busy || !draft.trim()} aria-label="Göndər">
+        <Button type="submit" className="h-11 shrink-0 px-4" disabled={busy || !draft.trim()}>
           {busy ? <Loader2 className="animate-spin" /> : <ArrowUp />}
+          Göndər
         </Button>
       </form>
     </aside>

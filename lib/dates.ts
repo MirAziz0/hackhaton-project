@@ -42,7 +42,8 @@ export function monthShortLabel(key: string) {
   return MONTHS_SHORT[Number(key.split("-")[1]) - 1];
 }
 
+// Accepts "YYYY-MM-DD" or a full ISO timestamp. Deterministic on server and client alike.
 export function formatDate(date: string) {
-  const [year, month, day] = date.split("-").map(Number);
+  const [year, month, day] = date.slice(0, 10).split("-").map(Number);
   return `${day} ${MONTHS[month - 1].toLowerCase()} ${year}`;
 }

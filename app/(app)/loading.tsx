@@ -6,7 +6,7 @@ export default function AppLoading() {
   return (
     <div aria-busy="true" aria-label="Yüklənir">
       <div className="mb-8 space-y-2">
-        <Skeleton className="h-9 w-64" />
+        <Skeleton className="h-10 w-72" />
         <Skeleton className="h-5 w-96 max-w-full" />
       </div>
       <div className="space-y-6">

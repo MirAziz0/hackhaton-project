@@ -20,7 +20,7 @@ export function Tabs<T extends string>({ items, value, onChange, className }: Ta
   return (
     <div
       role="tablist"
-      className={cn("flex flex-wrap gap-1 rounded-xl border bg-card p-1 shadow-sm", className)}
+      className={cn("flex w-fit max-w-full flex-wrap gap-1 rounded-[1.75rem] bg-card/80 p-1.5 shadow-card", className)}
     >
       {items.map(({ value: itemValue, label, icon: Icon }) => {
         const active = itemValue === value;
@@ -32,8 +32,10 @@ export function Tabs<T extends string>({ items, value, onChange, className }: Ta
             aria-selected={active}
             onClick={() => onChange(itemValue)}
             className={cn(
-              "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              active ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              active
+                ? "bg-brand text-primary-foreground shadow-[0_6px_14px_-6px_rgb(109_61_245/0.7)]"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {Icon && <Icon className="size-4" />}

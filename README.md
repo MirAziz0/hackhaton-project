@@ -2,7 +2,17 @@
 
 A web platform that guides an entrepreneur from a raw business idea to a running business, with AI at every step. Built for the "AI Enterprise Solutions" hackathon track. The UI is in Azerbaijani; code and comments are in English.
 
-> Status: **Phases 1-5** are implemented: setup, schema, auth, onboarding, Idea Studio with branding images, Business Analysis, Dashboard with the AI assistant, and the Network with AI matching and realtime chat.
+| Section | What it does |
+|---|---|
+| Onboarding | Seven questions after sign-up; the answers become context for every AI agent |
+| Studiya (Idea Studio) | Turns an idea into a business plan, financial forecast, location suggestions on a map, names, slogans, logos and a banner |
+| Analiz (Business Analysis) | Scores a plan's investment readiness from a saved business, a form or a PDF, with sources for every market figure |
+| Dashboard | Income and expense tracking with charts and an AI assistant that adds transactions and answers questions |
+| Şəbəkə (Network) | AI-recommended entrepreneurs with a reason for each, plus realtime 1:1 chat |
+
+Enterprise angle: banks and incubators can use the same analysis to evaluate SME loan applications and startup plans faster.
+
+**Stack:** Next.js 15 (App Router, TypeScript), Tailwind CSS v4 with shadcn-style components, Recharts, Leaflet, Supabase (Auth, Postgres, Realtime, Storage), OpenAI for the agents, Gemini for images, Tavily for web search.
 
 ## Setup
 
@@ -21,14 +31,14 @@ npm install
 
 Copy `.env.example` to `.env.local` and fill it in.
 
-| Variable | Needed from | Purpose |
+| Variable | Required | Purpose |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Phase 1 | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Phase 1 | Public key used by the browser and server clients |
-| `SUPABASE_SERVICE_ROLE_KEY` | Phase 1 (seed helper), Phase 2+ | Server-only admin key. Never expose it to the client |
-| `OPENAI_API_KEY`, `LLM_MODEL` | Phase 2 | OpenAI GPT API, called only from route handlers |
-| `IMAGE_PROVIDER`, `IMAGE_MODEL`, `IMAGE_API_KEY` | Phase 2 | Logo and banner generation with Gemini (`IMAGE_PROVIDER=openai` is also supported) |
-| `SEARCH_PROVIDER`, `SEARCH_API_KEY` | Phase 3 | Web search for competitor research |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public key used by the browser and server clients |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only admin key (sign-up, image and PDF storage). Never expose it to the client |
+| `OPENAI_API_KEY`, `LLM_MODEL` | Yes | OpenAI model used by all five agents, called only from route handlers |
+| `IMAGE_PROVIDER`, `IMAGE_MODEL`, `IMAGE_API_KEY` | No | Logo and banner generation (`gemini` or `openai`). Without a working key the app shows SVG placeholders |
+| `SEARCH_PROVIDER`, `SEARCH_API_KEY` | No | Web search for competitor research (`tavily`). Without a key competitors are described by type, not by name |
 
 ### 4. Run the migration and the seed
 
@@ -48,6 +58,22 @@ npm run dev
 ```
 
 Open http://localhost:3000.
+
+### 6. Deploy to Vercel
+
+1. Import the GitHub repository in Vercel.
+2. Add every variable from `.env.local` under **Settings → Environment Variables** (the file itself is not deployed), then redeploy.
+3. Under **Settings → Functions**, pick the function region closest to your Supabase project's region. Each page load makes at least one Supabase query, so a distant region adds noticeable delay.
+4. Share the production domain, not a `...-git-main-...` preview URL: preview URLs require a Vercel login unless Deployment Protection is turned off.
+
+PDF uploads are capped at 4 MB because Vercel rejects request bodies above 4.5 MB.
+
+## Before the demo
+
+- Replace the demo rows in `market_data` with real figures; their source names start with "DEMO".
+- Check that image generation works with your key. If the Brendinq tab shows a notice about sample visuals, the image API rejected the request (for example, no quota on a free Gemini key).
+- Sign in once with the demo account and open Studiya → Nur Cosmetics, Analiz → "Nəticəyə bax" and the Dashboard, so the saved plan and analysis are there as a fallback if the network is slow on stage.
+- The current month's KPIs compare a partial month with a full one, so early in a month they show large negative changes.
 
 ## Architecture
 

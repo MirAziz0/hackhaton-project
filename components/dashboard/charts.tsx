@@ -4,12 +4,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -27,10 +24,21 @@ const LABELS: Record<string, string> = {
 };
 
 const axisTick = { fill: CHART_COLORS.axis, fontSize: 12 };
-const tooltipStyle = { borderRadius: 8, borderColor: CHART_COLORS.grid, fontSize: 13 };
+const tooltipStyle = {
+  borderRadius: 14,
+  borderColor: CHART_COLORS.grid,
+  fontSize: 13,
+  boxShadow: "0 10px 30px -14px rgb(70 55 140 / 0.3)",
+};
 
 function compact(value: number) {
   return Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}k` : String(value);
+}
+
+// Legend entries follow this fixed order instead of Recharts' alphabetical default.
+const SERIES_ORDER = ["income", "expenses", "actual", "forecast"];
+function seriesOrder(item: { dataKey?: unknown }) {
+  return SERIES_ORDER.indexOf(String(item.dataKey));
 }
 
 function legendLabel(value: unknown) {
@@ -49,23 +57,23 @@ export function MonthlyBarChart({ data }: { data: MonthPoint[] }) {
   if (!data.some((point) => point.income || point.expenses)) return <EmptyChart />;
 
   return (
-    <div className="h-64 w-full">
+    <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={2} barCategoryGap="28%">
+        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barGap={4} barCategoryGap="24%">
           <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
-          <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={{ stroke: CHART_COLORS.grid }} />
+          <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
           <YAxis tickFormatter={compact} tick={axisTick} tickLine={false} axisLine={false} width={44} />
-          <Tooltip formatter={tooltipValue} contentStyle={tooltipStyle} cursor={{ fill: "#f1f5f9" }} />
-          <Legend formatter={legendLabel} iconType="circle" iconSize={8} />
-          <Bar dataKey="income" fill={CHART_COLORS.revenue} radius={[4, 4, 0, 0]} maxBarSize={28} />
-          <Bar dataKey="expenses" fill={CHART_COLORS.costs} radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <Tooltip formatter={tooltipValue} contentStyle={tooltipStyle} cursor={{ fill: "#f4f3f9" }} />
+          <Legend verticalAlign="top" align="left" height={36} formatter={legendLabel} iconType="circle" iconSize={8} itemSorter={seriesOrder} />
+          <Bar dataKey="income" fill={CHART_COLORS.revenue} radius={[8, 8, 3, 3]} maxBarSize={30} />
+          <Bar dataKey="expenses" fill={CHART_COLORS.costs} radius={[8, 8, 3, 3]} maxBarSize={30} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 }
 
-export interface DonutSlice {
+export interface CategorySlice {
   category: string;
   amount: number;
   share_pct: number;
@@ -73,11 +81,11 @@ export interface DonutSlice {
 }
 
 // Folds everything beyond the palette into "Digər" so no colour is ever generated or reused.
-export function toDonutSlices(
+export function toCategorySlices(
   categories: { category: string; amount: number; share_pct: number }[],
   colorOf: (category: string) => string | undefined,
-): DonutSlice[] {
-  const slices: DonutSlice[] = [];
+): CategorySlice[] {
+  const slices: CategorySlice[] = [];
   let otherAmount = 0;
   let otherShare = 0;
   for (const item of categories) {
@@ -103,51 +111,32 @@ export function categoryColorMap(allCategories: string[]) {
   };
 }
 
-export function ExpenseDonut({ slices, total }: { slices: DonutSlice[]; total: number }) {
+// Expense breakdown as labelled share bars: each category shows its name, amount and share.
+export function ExpenseBars({ slices }: { slices: CategorySlice[] }) {
   if (!slices.length) return <EmptyChart text="Bu ay hələ xərc yoxdur." />;
 
   return (
-    <div className="flex flex-col items-center gap-4 sm:flex-row">
-      <div className="relative size-44 shrink-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Tooltip
-              formatter={(value, name) => [formatAZN(Number(value)), String(name)]}
-              contentStyle={tooltipStyle}
+    <ul className="space-y-5">
+      {slices.map((slice) => (
+        <li key={slice.category} className="space-y-1.5">
+          <p className="truncate text-sm font-medium">{slice.category}</p>
+          <div
+            className="h-2.5 overflow-hidden rounded-full bg-muted"
+            role="img"
+            aria-label={`${slice.category}: ${slice.share_pct}%`}
+          >
+            <div
+              className="bar-stripes h-full rounded-full"
+              style={{ width: `${Math.max(slice.share_pct, 2)}%`, color: slice.color }}
             />
-            <Pie
-              data={slices}
-              dataKey="amount"
-              nameKey="category"
-              innerRadius={54}
-              outerRadius={80}
-              paddingAngle={2}
-              stroke="#ffffff"
-              strokeWidth={2}
-            >
-              {slices.map((slice) => (
-                <Cell key={slice.category} fill={slice.color} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xs text-muted-foreground">Cəmi</span>
-          <span className="text-base font-semibold tabular-nums">{formatAZN(total)}</span>
-        </div>
-      </div>
-
-      <ul className="w-full min-w-0 space-y-2 text-sm">
-        {slices.map((slice) => (
-          <li key={slice.category} className="flex items-center gap-2">
-            <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: slice.color }} />
-            <span className="min-w-0 flex-1 truncate">{slice.category}</span>
-            <span className="tabular-nums text-muted-foreground">{slice.share_pct}%</span>
-            <span className="w-20 text-right font-medium tabular-nums">{formatAZN(slice.amount)}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="tabular-nums text-muted-foreground">{formatAZN(slice.amount)}</span>
+            <span className="font-semibold tabular-nums">{slice.share_pct}%</span>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -165,10 +154,10 @@ export function ForecastLineChart({ data }: { data: ForecastPoint[] }) {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
-          <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={{ stroke: CHART_COLORS.grid }} />
+          <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
           <YAxis tickFormatter={compact} tick={axisTick} tickLine={false} axisLine={false} width={44} />
           <Tooltip formatter={tooltipValue} contentStyle={tooltipStyle} />
-          <Legend formatter={legendLabel} iconType="plainline" />
+          <Legend verticalAlign="top" align="left" height={36} formatter={legendLabel} iconType="plainline" itemSorter={seriesOrder} />
           <Line
             type="monotone"
             dataKey="forecast"
@@ -182,7 +171,7 @@ export function ForecastLineChart({ data }: { data: ForecastPoint[] }) {
             type="monotone"
             dataKey="actual"
             stroke={CHART_COLORS.revenue}
-            strokeWidth={2}
+            strokeWidth={2.5}
             dot={{ r: 4, strokeWidth: 0, fill: CHART_COLORS.revenue }}
             activeDot={{ r: 6 }}
             connectNulls={false}

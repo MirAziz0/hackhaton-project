@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, type TabItem } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { TRACKS } from "@/lib/constants";
+import { formatDate } from "@/lib/dates";
 import type { Analysis } from "@/types/analysis";
 
 type Source = "business" | "pdf" | "form";
@@ -28,17 +29,13 @@ const GENERIC_ERROR = "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.";
 // Vercel rejects request bodies above 4.5 MB, so stay safely below that.
 const MAX_PDF_BYTES = 4 * 1024 * 1024;
 const SELECT_CLASS =
-  "flex h-10 w-full rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
+  "flex h-11 w-full rounded-md border border-input bg-card px-4 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
 
 // Message for responses that carry no JSON error (for example a host-level timeout page).
 function statusMessage(status: number) {
   if (status === 413) return "Fayl çox böyükdür. Ən çox 4 MB ölçüdə PDF yükləyin.";
   if (status === 504 || status === 408) return "Analiz çox uzun çəkdi və dayandırıldı. Zəhmət olmasa yenidən cəhd edin.";
   return `Serverdə xəta baş verdi (kod ${status}). Zəhmət olmasa yenidən cəhd edin.`;
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("az-AZ", { day: "numeric", month: "long", year: "numeric" });
 }
 
 interface AnalysisWorkspaceProps {

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { ChatProvider } from "@/components/chat/chat-provider";
 import { ChatWidget } from "@/components/chat/chat-widget";
-import { Sidebar } from "@/components/layout/sidebar";
+import { TopNav } from "@/components/layout/top-nav";
 import { getSessionProfile } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -13,11 +13,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     // The provider lets any page (network cards, profiles) open the chat on a given person.
     <ChatProvider currentUserId={profile.id}>
-      <div className="min-h-screen">
-        <Sidebar profile={profile} />
-        <main className="min-h-screen pl-64">
-          <div className="mx-auto max-w-[90rem] px-8 py-8">{children}</div>
-        </main>
+      <div className="app-backdrop min-h-screen">
+        <TopNav profile={profile} />
+        <main className="mx-auto max-w-[96rem] px-5 pb-12 pt-2 lg:px-10">{children}</main>
         <ChatWidget />
       </div>
     </ChatProvider>

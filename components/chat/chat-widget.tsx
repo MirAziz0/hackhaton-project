@@ -183,7 +183,7 @@ export function ChatWidget() {
     <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
       {open && (
         <div className="flex h-[30rem] max-h-[calc(100vh-8rem)] w-[22rem] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-xl border bg-card shadow-xl">
-          <div className="flex items-center gap-2 bg-sidebar px-4 py-3 text-white">
+          <div className="bg-brand flex items-center gap-2 px-4 py-3 text-white">
             {activeUserId ? (
               <>
                 <button type="button" onClick={() => setActiveUserId(null)} aria-label="Söhbətlərə qayıt">
@@ -192,7 +192,7 @@ export function ChatWidget() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{activeContact?.full_name || "Sahibkar"}</p>
                   {activeContact?.track && (
-                    <p className="truncate text-xs text-sidebar-foreground/80">{trackLabel(activeContact.track)}</p>
+                    <p className="truncate text-xs text-white/80">{trackLabel(activeContact.track)}</p>
                   )}
                 </div>
               </>

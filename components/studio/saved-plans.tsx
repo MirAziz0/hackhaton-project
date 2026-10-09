@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- logos come from Supabase Storage or data URIs */
 import { ChevronRight } from "lucide-react";
+import { formatDate } from "@/lib/dates";
 import { initials } from "@/lib/utils";
 import type { Business } from "@/types/database";
 
@@ -34,11 +35,7 @@ export function SavedPlans({ businesses, onOpen }: SavedPlansProps) {
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{business.name}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {new Date(business.created_at).toLocaleDateString("az-AZ", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {formatDate(business.created_at)}
                 </span>
               </span>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

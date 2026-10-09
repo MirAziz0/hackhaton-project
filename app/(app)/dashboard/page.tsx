@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { todayInBaku } from "@/lib/dates";
-import { getAuth } from "@/lib/supabase/server";
+import { getAuth, getSessionProfile } from "@/lib/supabase/server";
 import type { FinancialForecast, Transaction } from "@/types/database";
 
 export const metadata = { title: "Dashboard — LaunchLens AI" };
@@ -27,12 +27,15 @@ export default async function DashboardPage({
   const { supabase, user } = await getAuth();
   if (!user) redirect("/login");
 
-  // One round trip: the businesses together with their transactions.
-  const { data: businessRows } = await supabase
-    .from("businesses")
-    .select("id, name, financial_forecast, transactions(*)")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: false });
+  // One round trip of latency: the profile and the businesses (with transactions) in parallel.
+  const [{ profile }, { data: businessRows }] = await Promise.all([
+    getSessionProfile(),
+    supabase
+      .from("businesses")
+      .select("id, name, financial_forecast, transactions(*)")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
   const businesses = (businessRows as BusinessRow[] | null) ?? [];
 
   const header = (
@@ -66,10 +69,10 @@ export default async function DashboardPage({
 
   return (
     <>
-      {header}
       {/* The key resets all client state when another business is selected. */}
       <DashboardClient
         key={business.id}
+        userName={profile?.full_name?.trim().split(" ")[0] || "sahibkar"}
         businesses={businesses.map(({ id, name }) => ({ id, name }))}
         business={{ id: business.id, name: business.name, financial_forecast: business.financial_forecast }}
         initialTransactions={transactions}
