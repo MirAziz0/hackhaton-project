@@ -58,7 +58,7 @@ export function LandingPage() {
       <header className="sticky top-4 z-40 px-4 lg:px-10">
         <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2.5 pl-3 pr-2.5">
         <Link href="/" className="flex items-center gap-2.5" aria-label={APP_NAME}>
-          <LogoMark className="rounded-[24%]" />
+          <LogoMark />
           <span className="text-xl font-semibold tracking-tight">{APP_NAME}</span>
         </Link>
 

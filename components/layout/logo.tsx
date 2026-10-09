@@ -10,7 +10,7 @@ export function LogoMark({ className }: { className?: string }) {
 export function Logo({ className, dark = false }: { className?: string; dark?: boolean }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <LogoMark className="shadow-[0_6px_14px_-6px_rgb(109_61_245/0.7)] rounded-[24%]" />
+      <LogoMark />
       <span className={cn("text-xl font-semibold tracking-tight", dark ? "text-white" : "text-foreground")}>
         {APP_NAME}
       </span>
