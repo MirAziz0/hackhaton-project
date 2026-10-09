@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Rocket } from "lucide-react";
+import { ArrowLeft, Rocket } from "lucide-react";
 import { AuthBackdrop } from "@/components/auth/auth-backdrop";
 import { APP_NAME } from "@/lib/constants";
 
@@ -7,8 +7,18 @@ import { APP_NAME } from "@/lib/constants";
 // shows the artwork with a headline; the right half holds the form.
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative isolate flex min-h-screen items-center justify-center bg-black p-4 sm:p-8">
+    // The extra top padding keeps the card clear of the "back" button on short and narrow screens.
+    <div className="relative isolate flex min-h-screen items-center justify-center bg-black px-4 pb-6 pt-20 sm:px-8 sm:pb-8 sm:pt-24">
       <AuthBackdrop variant="page" />
+
+      {/* The wrapper does the positioning: .glass-button sets its own "position: relative". */}
+      <div className="absolute left-4 top-4 z-10 sm:left-6 sm:top-6">
+        <Link href="/" className="glass-button h-10 px-4 text-sm">
+          <ArrowLeft className="size-4" />
+          <span className="hidden sm:inline">Ana səhifə</span>
+          <span className="sr-only sm:hidden">Ana səhifəyə qayıt</span>
+        </Link>
+      </div>
 
       <div className="grid w-full max-w-6xl rounded-[2rem] bg-white p-2 shadow-[0_40px_120px_-30px_rgb(0_0_0/0.9)] lg:min-h-[44rem] lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1fr)]">
         <div className="relative isolate hidden flex-col justify-between overflow-hidden rounded-[1.6rem] bg-black p-10 text-white lg:flex">
