@@ -14,6 +14,12 @@ export function getFastLlmModel() {
   return process.env.LLM_FAST_MODEL || getLlmModel();
 }
 
+// The dashboard assistant answers many short chat messages, so it runs on a cheaper model by
+// default. Set LLM_ASSISTANT_MODEL to change it.
+export function getAssistantLlmModel() {
+  return process.env.LLM_ASSISTANT_MODEL || "gpt-4.1-mini";
+}
+
 export function getOpenAI() {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {

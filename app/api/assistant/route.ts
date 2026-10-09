@@ -2,7 +2,7 @@ import type OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ASSISTANT_TOOLS, executeTool } from "@/lib/ai/assistant-tools";
-import { getLlmModel, getOpenAI } from "@/lib/ai/client";
+import { getAssistantLlmModel, getOpenAI } from "@/lib/ai/client";
 import { AI_GENERIC_ERROR, toUserError } from "@/lib/ai/errors";
 import { assistantSystemPrompt } from "@/lib/ai/prompts";
 import { todayInBaku } from "@/lib/dates";
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status });
   }
 
-  const model = getLlmModel();
+  const model = getAssistantLlmModel();
   const conversation: Message[] = [
     {
       role: "system",
