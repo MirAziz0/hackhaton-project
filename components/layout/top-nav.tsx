@@ -75,7 +75,7 @@ export function TopNav({ profile }: { profile: Profile }) {
       <nav
         ref={navRef}
         aria-label="Əsas menyu"
-        className="relative order-last flex w-full gap-1 overflow-x-auto rounded-full bg-[#fbf7dc] p-1.5 shadow-card md:order-none md:w-auto"
+        className="glass-light relative order-last flex w-full gap-1 overflow-x-auto rounded-full p-1.5 md:order-none md:w-auto"
       >
         {pill && (
           <span
@@ -105,7 +105,7 @@ export function TopNav({ profile }: { profile: Profile }) {
               aria-current={routeActive === baseHref ? "page" : undefined}
               className={cn(
                 "relative z-10 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-300",
-                isActive ? "text-white" : "text-foreground/80 hover:bg-white/70 hover:text-foreground",
+                isActive ? "text-white" : "text-foreground/75 hover:bg-white/60 hover:text-foreground",
                 // Before the pill is measured (first paint), the active item carries the highlight itself.
                 isActive && !pill && "bg-brand",
               )}
@@ -137,7 +137,7 @@ export function TopNav({ profile }: { profile: Profile }) {
           onClick={signOut}
           aria-label="Çıxış"
           title="Çıxış"
-          className="flex size-10 items-center justify-center rounded-full bg-white/70 text-muted-foreground shadow-card transition-colors hover:bg-white hover:text-foreground"
+          className="glass-light flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
         >
           <LogOut className="size-4" />
         </button>
