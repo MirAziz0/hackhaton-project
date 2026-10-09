@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, monthKey, monthLabel } from "@/lib/dates";
 import { cn, formatAZN } from "@/lib/utils";
 import type { Transaction, TransactionType } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 const SELECT_CLASS =
   "h-9 rounded-full border border-input bg-card px-3.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
@@ -20,6 +21,7 @@ interface TransactionsTableProps {
 }
 
 export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: TransactionsTableProps) {
+  const t = useT();
   const [month, setMonth] = useState("all");
   const [type, setType] = useState<"all" | TransactionType>("all");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -51,29 +53,29 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
   return (
     <Card>
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-3">
-        <CardTitle>Əməliyyatlar</CardTitle>
+        <CardTitle>{t("Əməliyyatlar")}</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
-          <select aria-label="Ay üzrə filtr" value={month} onChange={(e) => setMonth(e.target.value)} className={SELECT_CLASS}>
-            <option value="all">Bütün aylar</option>
+          <select aria-label={t("Ay üzrə filtr")} value={month} onChange={(e) => setMonth(e.target.value)} className={SELECT_CLASS}>
+            <option value="all">{t("Bütün aylar")}</option>
             {months.map((key) => (
               <option key={key} value={key}>
-                {monthLabel(key)}
+                {monthLabel(key, t)}
               </option>
             ))}
           </select>
           <select
-            aria-label="Növ üzrə filtr"
+            aria-label={t("Növ üzrə filtr")}
             value={type}
             onChange={(e) => setType(e.target.value as "all" | TransactionType)}
             className={SELECT_CLASS}
           >
-            <option value="all">Bütün növlər</option>
-            <option value="income">Gəlir</option>
-            <option value="expense">Xərc</option>
+            <option value="all">{t("Bütün növlər")}</option>
+            <option value="income">{t("Gəlir")}</option>
+            <option value="expense">{t("Xərc")}</option>
           </select>
           <Button size="sm" className="h-9" onClick={onAdd}>
             <Plus />
-            Əməliyyat əlavə et
+            {t("Əməliyyat əlavə et")}
           </Button>
         </div>
       </CardHeader>
@@ -83,23 +85,23 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-[#e6f9ea] text-left text-xs text-foreground/70">
                 <tr>
-                  <th className="rounded-l-full py-2.5 pl-4 pr-4 font-medium">Tarix</th>
-                  <th className="py-2 pr-4 font-medium">Növ</th>
-                  <th className="py-2 pr-4 font-medium">Kateqoriya</th>
-                  <th className="py-2 pr-4 font-medium">Qeyd</th>
-                  <th className="py-2 pr-4 text-right font-medium">Məbləğ</th>
+                  <th className="rounded-l-full py-2.5 pl-4 pr-4 font-medium">{t("Tarix")}</th>
+                  <th className="py-2 pr-4 font-medium">{t("Növ")}</th>
+                  <th className="py-2 pr-4 font-medium">{t("Kateqoriya")}</th>
+                  <th className="py-2 pr-4 font-medium">{t("Qeyd")}</th>
+                  <th className="py-2 pr-4 text-right font-medium">{t("Məbləğ")}</th>
                   <th className="rounded-r-full py-2.5 pr-4 font-medium">
-                    <span className="sr-only">Əməliyyatlar</span>
+                    <span className="sr-only">{t("Əməliyyatlar")}</span>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {visible.map((tx) => (
                   <tr key={tx.id} className="hover:bg-muted/40">
-                    <td className="whitespace-nowrap py-3 pl-4 pr-4">{formatDate(tx.date)}</td>
+                    <td className="whitespace-nowrap py-3 pl-4 pr-4">{formatDate(tx.date, t)}</td>
                     <td className="py-2.5 pr-4">
                       <Badge variant={tx.type === "income" ? "success" : "warning"}>
-                        {tx.type === "income" ? "Gəlir" : "Xərc"}
+                        {tx.type === "income" ? t("Gəlir") : t("Xərc")}
                       </Badge>
                     </td>
                     <td className="py-2.5 pr-4 font-medium">{tx.category}</td>
@@ -124,10 +126,10 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
                             onClick={() => void remove(tx)}
                             disabled={deletingId === tx.id}
                           >
-                            Sil
+                            {t("Sil")}
                           </Button>
                           <Button variant="ghost" size="sm" onClick={() => setConfirmingId(null)}>
-                            Xeyr
+                            {t("Xeyr")}
                           </Button>
                         </span>
                       ) : (
@@ -135,7 +137,7 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
                           <button
                             type="button"
                             onClick={() => onEdit(tx)}
-                            aria-label="Redaktə et"
+                            aria-label={t("Redaktə et")}
                             className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                           >
                             <Pencil className="size-4" />
@@ -143,7 +145,7 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
                           <button
                             type="button"
                             onClick={() => setConfirmingId(tx.id)}
-                            aria-label="Sil"
+                            aria-label={t("Sil")}
                             className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-700"
                           >
                             <Trash2 className="size-4" />
@@ -159,8 +161,8 @@ export function TransactionsTable({ transactions, onAdd, onEdit, onDelete }: Tra
         ) : (
           <p className="py-10 text-center text-sm text-muted-foreground">
             {transactions.length
-              ? "Seçilmiş filtrə uyğun əməliyyat yoxdur."
-              : "Hələ əməliyyat yoxdur. İlk gəlir və ya xərcinizi əlavə edin, yaxud AI köməkçiyə yazın."}
+              ? t("Seçilmiş filtrə uyğun əməliyyat yoxdur.")
+              : t("Hələ əməliyyat yoxdur. İlk gəlir və ya xərcinizi əlavə edin, yaxud AI köməkçiyə yazın.")}
           </p>
         )}
       </CardContent>

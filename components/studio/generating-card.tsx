@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useT } from "@/components/i18n/locale-provider";
 
 const STUDIO_STEPS = [
   "İdeyanız və profiliniz təhlil edilir",
@@ -21,10 +22,11 @@ interface GeneratingCardProps {
 
 // Progress messages advance on a timer while a single long AI request is in flight.
 export function GeneratingCard({
-  title = "Planınız hazırlanır",
+  title,
   steps = STUDIO_STEPS,
-  hint = "Bu, adətən 20–40 saniyə çəkir.",
+  hint,
 }: GeneratingCardProps) {
+  const t = useT();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function GeneratingCard({
     <div className="space-y-6">
       <Card>
         <CardContent className="space-y-4 p-6">
-          <p className="text-lg font-semibold">{title}</p>
+          <p className="text-lg font-semibold">{title ?? t("Planınız hazırlanır")}</p>
           <ul className="space-y-3" aria-live="polite">
             {steps.map((step, index) => (
               <li key={step} className="flex items-center gap-3 text-sm">
@@ -51,11 +53,11 @@ export function GeneratingCard({
                 ) : (
                   <span className="size-5 rounded-full border-2 border-border" />
                 )}
-                <span className={index > active ? "text-muted-foreground" : "font-medium"}>{step}</span>
+                <span className={index > active ? "text-muted-foreground" : "font-medium"}>{t(step)}</span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-muted-foreground">{hint}</p>
+          <p className="text-xs text-muted-foreground">{hint ?? t("Bu, adətən 20–40 saniyə çəkir.")}</p>
         </CardContent>
       </Card>
 

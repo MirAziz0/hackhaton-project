@@ -5,6 +5,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { useT } from "@/components/i18n/locale-provider";
 
 const EXAMPLES = [
   "Bakıda təbii tərkibli əl işi sabunlar və şamlar satan kiçik mağaza açmaq istəyirəm.",
@@ -20,6 +21,7 @@ interface IdeaFormProps {
 }
 
 export function IdeaForm({ initialIdea = "", loading, error, onSubmit }: IdeaFormProps) {
+  const t = useT();
   const [idea, setIdea] = useState(initialIdea);
   const tooShort = idea.trim().length < 10;
 
@@ -28,10 +30,10 @@ export function IdeaForm({ initialIdea = "", loading, error, onSubmit }: IdeaFor
       <CardContent className="space-y-4 p-6">
         <div className="space-y-1.5">
           <label htmlFor="idea" className="text-lg font-semibold">
-            Biznes ideyanızı yazın
+            {t("Biznes ideyanızı yazın")}
           </label>
           <p className="text-sm text-muted-foreground">
-            Bir-iki cümlə kifayətdir. Profilinizdəki məlumatları (sahə, büdcə, məkan) artıq bilirik.
+            {t("Bir-iki cümlə kifayətdir. Profilinizdəki məlumatları (sahə, büdcə, məkan) artıq bilirik.")}
           </p>
         </div>
 
@@ -39,7 +41,7 @@ export function IdeaForm({ initialIdea = "", loading, error, onSubmit }: IdeaFor
           id="idea"
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
-          placeholder="Məsələn: Bakıda təbii tərkibli kosmetika mağazası açmaq istəyirəm..."
+          placeholder={t("Məsələn: Bakıda təbii tərkibli kosmetika mağazası açmaq istəyirəm...")}
           className="min-h-36 text-base"
           maxLength={4000}
           disabled={loading}
@@ -51,10 +53,10 @@ export function IdeaForm({ initialIdea = "", loading, error, onSubmit }: IdeaFor
               key={example}
               type="button"
               disabled={loading}
-              onClick={() => setIdea(example)}
+              onClick={() => setIdea(t(example))}
               className="rounded-full border bg-card px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground disabled:opacity-50"
             >
-              {example}
+              {t(example)}
             </button>
           ))}
         </div>
@@ -68,7 +70,7 @@ export function IdeaForm({ initialIdea = "", loading, error, onSubmit }: IdeaFor
         <div className="flex justify-end">
           <Button size="lg" disabled={tooShort || loading} onClick={() => onSubmit(idea.trim())}>
             {loading ? <Loader2 className="animate-spin" /> : <Sparkles />}
-            {loading ? "İdeya oxunur..." : "Plan hazırla"}
+            {loading ? t("İdeya oxunur...") : t("Plan hazırla")}
           </Button>
         </div>
       </CardContent>

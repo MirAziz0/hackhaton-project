@@ -1,10 +1,12 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { getT } from "@/lib/i18n/server";
 
 // Shown instantly while a page in the app shell loads its data, so navigating between
 // sidebar items never looks frozen.
-export default function AppLoading() {
+export default async function AppLoading() {
+  const t = await getT();
   return (
-    <div aria-busy="true" aria-label="Yüklənir">
+    <div aria-busy="true" aria-label={t("Yüklənir")}>
       <div className="mb-8 space-y-2">
         <Skeleton className="h-10 w-72" />
         <Skeleton className="h-5 w-96 max-w-full" />

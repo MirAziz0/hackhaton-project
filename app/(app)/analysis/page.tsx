@@ -3,14 +3,19 @@ import { AnalysisWorkspace } from "@/components/analysis/analysis-workspace";
 import { PageHeader } from "@/components/layout/page-header";
 import { getAuth, getSessionProfile } from "@/lib/supabase/server";
 import type { Analysis } from "@/types/analysis";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Analiz — Growenta" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: `${t("Analiz")} — Growenta` };
+}
 
 export default async function AnalysisPage({
   searchParams,
 }: {
   searchParams: Promise<{ business?: string }>;
 }) {
+  const t = await getT();
   const { business: requestedId } = await searchParams;
   const { supabase, user } = await getAuth();
   if (!user) redirect("/login");
@@ -39,8 +44,8 @@ export default async function AnalysisPage({
   return (
     <>
       <PageHeader
-        title="Biznes Analizi"
-        description="Planınızı real bazar məlumatları ilə yoxlayın və investisiyaya hazırlıq balını öyrənin."
+        title={t("Biznes Analizi")}
+        description={t("Planınızı real bazar məlumatları ilə yoxlayın və investisiyaya hazırlıq balını öyrənin.")}
       />
       <AnalysisWorkspace
         businesses={businesses}

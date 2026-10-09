@@ -1,14 +1,18 @@
+"use client";
+
 import { CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAZN } from "@/lib/utils";
 import type { BusinessPlan } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 export function PlanTab({ plan }: { plan: BusinessPlan }) {
+  const t = useT();
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>Xülasə</CardTitle>
+          <CardTitle>{t("Xülasə")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="leading-relaxed">{plan.summary}</p>
@@ -17,7 +21,7 @@ export function PlanTab({ plan }: { plan: BusinessPlan }) {
 
       <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle>Məhsul və xidmətlər</CardTitle>
+          <CardTitle>{t("Məhsul və xidmətlər")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="divide-y">
@@ -37,7 +41,7 @@ export function PlanTab({ plan }: { plan: BusinessPlan }) {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Hədəf auditoriya</CardTitle>
+            <CardTitle>{t("Hədəf auditoriya")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm leading-relaxed">{plan.target_audience}</p>
@@ -45,7 +49,7 @@ export function PlanTab({ plan }: { plan: BusinessPlan }) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Qiymət strategiyası</CardTitle>
+            <CardTitle>{t("Qiymət strategiyası")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm leading-relaxed">{plan.pricing_strategy}</p>
@@ -55,7 +59,7 @@ export function PlanTab({ plan }: { plan: BusinessPlan }) {
 
       <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>Marketinq planı</CardTitle>
+          <CardTitle>{t("Marketinq planı")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -71,13 +75,13 @@ export function PlanTab({ plan }: { plan: BusinessPlan }) {
 
       <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>İlk 6 ayın yol xəritəsi</CardTitle>
+          <CardTitle>{t("İlk 6 ayın yol xəritəsi")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {plan.roadmap.map((step) => (
               <li key={step.month} className="rounded-lg border bg-muted/40 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">{step.month}-ci ay</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t("{month}-ci ay", { month: step.month })}</p>
                 <p className="mt-1 font-medium">{step.title}</p>
                 <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-muted-foreground">
                   {step.tasks.map((task) => (

@@ -34,6 +34,7 @@ import {
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import type { LookingFor, Stage, Track } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 const TRACK_ICONS: Record<Track, LucideIcon> = {
   cosmetics: Sparkles,
@@ -81,6 +82,7 @@ const INITIAL: Answers = {
 };
 
 export function OnboardingWizard({ userId }: { userId: string }) {
+  const t = useT();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>(INITIAL);
@@ -132,7 +134,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
       router.push(homeForStage(answers.stage));
       router.refresh();
     } catch {
-      setError("Məlumatları yadda saxlamaq mümkün olmadı. Zəhmət olmasa yenidən cəhd edin.");
+      setError(t("Məlumatları yadda saxlamaq mümkün olmadı. Zəhmət olmasa yenidən cəhd edin."));
       setSaving(false);
     }
   }
@@ -147,9 +149,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
     <div className="w-full max-w-2xl">
       <div className="mb-6 space-y-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            Addım {step + 1} / {STEPS.length}
-          </span>
+          <span>{t("Addım {step} / {total}", { step: step + 1, total: STEPS.length })}</span>
           <span>{Math.round(((step + 1) / STEPS.length) * 100)}%</span>
         </div>
         <Progress value={((step + 1) / STEPS.length) * 100} />
@@ -158,8 +158,8 @@ export function OnboardingWizard({ userId }: { userId: string }) {
       <Card>
         <CardContent className="space-y-6 p-6 sm:p-8">
           <div className="space-y-1.5">
-            <h1 className="text-2xl font-semibold tracking-tight">{STEPS[step].title}</h1>
-            <p className="text-sm text-muted-foreground">{STEPS[step].hint}</p>
+            <h1 className="text-2xl font-semibold tracking-tight">{t(STEPS[step].title)}</h1>
+            <p className="text-sm text-muted-foreground">{t(STEPS[step].hint)}</p>
           </div>
 
           {step === 0 && (
@@ -167,8 +167,8 @@ export function OnboardingWizard({ userId }: { userId: string }) {
               {TRACKS.map((track) => (
                 <OptionCard
                   key={track.value}
-                  label={track.label}
-                  description={track.description}
+                  label={t(track.label)}
+                  description={t(track.description)}
                   icon={TRACK_ICONS[track.value]}
                   selected={answers.track === track.value}
                   onClick={() => update("track", track.value)}
@@ -182,8 +182,8 @@ export function OnboardingWizard({ userId }: { userId: string }) {
               {STAGES.map((stage) => (
                 <OptionCard
                   key={stage.value}
-                  label={stage.label}
-                  description={stage.description}
+                  label={t(stage.label)}
+                  description={t(stage.description)}
                   icon={STAGE_ICONS[stage.value]}
                   selected={answers.stage === stage.value}
                   onClick={() => update("stage", stage.value)}
@@ -197,7 +197,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
               {BUDGET_RANGES.map((range) => (
                 <OptionCard
                   key={range.value}
-                  label={range.label}
+                  label={t(range.label)}
                   selected={answers.budget_range === range.value}
                   onClick={() => update("budget_range", range.value)}
                   compact
@@ -209,7 +209,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
           {step === 3 && (
             <div className="space-y-5">
               <LocationGroup
-                title="Bakı"
+                title={t("Bakı")}
                 options={BAKU_DISTRICTS.map((district) => ({
                   value: `Bakı, ${district}`,
                   label: district,
@@ -218,14 +218,14 @@ export function OnboardingWizard({ userId }: { userId: string }) {
                 onSelect={(value) => update("city", value)}
               />
               <LocationGroup
-                title="Regionlar"
+                title={t("Regionlar")}
                 options={REGIONS.map((region) => ({ value: region, label: region }))}
                 selected={answers.city}
                 onSelect={(value) => update("city", value)}
               />
               <LocationGroup
-                title="Onlayn"
-                options={[{ value: ONLINE_LOCATION, label: "Yalnız onlayn" }]}
+                title={t("Onlayn")}
+                options={[{ value: ONLINE_LOCATION, label: t("Yalnız onlayn") }]}
                 selected={answers.city}
                 onSelect={(value) => update("city", value)}
               />
@@ -237,7 +237,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
               autoFocus
               value={answers.products}
               onChange={(e) => update("products", e.target.value)}
-              placeholder="Məsələn: təbii tərkibli üz kremləri, sabunlar və hədiyyə dəstləri"
+              placeholder={t("Məsələn: təbii tərkibli üz kremləri, sabunlar və hədiyyə dəstləri")}
             />
           )}
 
@@ -246,7 +246,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
               autoFocus
               value={answers.target_customer}
               onChange={(e) => update("target_customer", e.target.value)}
-              placeholder="Məsələn: 20–40 yaş arası, təbii məhsullara üstünlük verən qadınlar"
+              placeholder={t("Məsələn: 20–40 yaş arası, təbii məhsullara üstünlük verən qadınlar")}
             />
           )}
 
@@ -255,7 +255,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
               {LOOKING_FOR.map((item) => (
                 <OptionCard
                   key={item.value}
-                  label={item.label}
+                  label={t(item.label)}
                   selected={answers.looking_for.includes(item.value)}
                   onClick={() => toggleLookingFor(item.value)}
                   compact
@@ -277,11 +277,11 @@ export function OnboardingWizard({ userId }: { userId: string }) {
               disabled={step === 0 || saving}
             >
               <ArrowLeft />
-              Geri
+              {t("Geri")}
             </Button>
             <Button onClick={next} disabled={!canContinue || saving}>
               {saving && <Loader2 className="animate-spin" />}
-              {isLast ? "Tamamla" : "Növbəti"}
+              {isLast ? t("Tamamla") : t("Növbəti")}
               {!isLast && <ArrowRight />}
             </Button>
           </div>

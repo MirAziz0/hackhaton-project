@@ -3,8 +3,12 @@ import { Logo } from "@/components/layout/logo";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 import { homeForStage } from "@/lib/constants";
 import { getSessionProfile } from "@/lib/supabase/server";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Başlayaq — Growenta" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: `${t("Başlayaq")} — Growenta` };
+}
 
 export default async function OnboardingPage() {
   const { user, profile } = await getSessionProfile();

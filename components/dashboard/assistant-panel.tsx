@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/dates";
 import { cn, formatAZN } from "@/lib/utils";
 import type { AssistantEvent, ChatTurn, TransactionProposal } from "@/types/assistant";
+import { useT } from "@/components/i18n/locale-provider";
 
 type ProposalStatus = "pending" | "saving" | "confirmed" | "cancelled" | "error";
 
@@ -44,6 +45,7 @@ interface AssistantPanelProps {
 }
 
 export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPanelProps) {
+  const t = useT();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -93,7 +95,7 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
       });
       if (!response.ok || !response.body) {
         const body = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(body?.error ?? GENERIC_ERROR);
+        throw new Error(body?.error ?? t(GENERIC_ERROR));
       }
 
       // The reply is newline-delimited JSON; a chunk can end in the middle of a line.
@@ -113,7 +115,7 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
     } catch (err) {
       patch(replyId, (m) => ({
         ...m,
-        content: err instanceof Error && err.message !== "Failed to fetch" ? err.message : GENERIC_ERROR,
+        content: err instanceof Error && err.message !== "Failed to fetch" ? err.message : t(GENERIC_ERROR),
         error: true,
         tool: null,
       }));
@@ -134,7 +136,11 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
         {
           id: nextId.current++,
           role: "assistant",
-          content: `Əlavə edildi: ${transaction.category}, ${formatAZN(transaction.amount)} (${transaction.type === "income" ? "gəlir" : "xərc"}). Qrafiklər yeniləndi.`,
+          content: t("Əlavə edildi: {category}, {amount} ({type}). Qrafiklər yeniləndi.", {
+            category: transaction.category,
+            amount: formatAZN(transaction.amount),
+            type: transaction.type === "income" ? t("gəlir") : t("xərc"),
+          }),
         },
       ]);
     } catch {
@@ -149,8 +155,8 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
           <Sparkles className="size-4" />
         </span>
         <div>
-          <p className="text-sm font-semibold">AI köməkçi</p>
-          <p className="text-xs text-muted-foreground">Əməliyyat əlavə edin və ya sual verin</p>
+          <p className="text-sm font-semibold">{t("AI köməkçi")}</p>
+          <p className="text-xs text-muted-foreground">{t("Əməliyyat əlavə edin və ya sual verin")}</p>
         </div>
       </div>
 
@@ -167,17 +173,17 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
               }}
             />
             <p className="text-center text-sm text-muted-foreground">
-              Salam! Satış və xərclərinizi sadə dillə yazın, mən onları qeyd edim. Maliyyəniz haqqında sual da verə bilərsiniz.
+              {t("Salam! Satış və xərclərinizi sadə dillə yazın, mən onları qeyd edim. Maliyyəniz haqqında sual da verə bilərsiniz.")}
             </p>
             <div className="flex flex-col gap-2">
               {SUGGESTIONS.map((suggestion) => (
                 <button
                   key={suggestion}
                   type="button"
-                  onClick={() => void send(suggestion)}
+                  onClick={() => void send(t(suggestion))}
                   className="flex items-center gap-2 rounded-full bg-muted px-4 py-2.5 text-left text-sm transition-colors hover:bg-secondary hover:text-secondary-foreground"
                 >
-                  {suggestion}
+                  {t(suggestion)}
                 </button>
               ))}
             </div>
@@ -200,7 +206,7 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
                 {message.tool && (
                   <p className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Loader2 className="size-3 animate-spin" />
-                    {TOOL_LABELS[message.tool] ?? "Hesablanır"}…
+                    {t(TOOL_LABELS[message.tool] ?? "Hesablanır")}…
                   </p>
                 )}
                 {message.content ? (
@@ -244,13 +250,13 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Məsələn: Bu gün 450 manat satış oldu"
+          placeholder={t("Məsələn: Bu gün 450 manat satış oldu")}
           maxLength={2000}
-          aria-label="AI köməkçiyə mesaj"
+          aria-label={t("AI köməkçiyə mesaj")}
         />
         <Button type="submit" className="h-11 shrink-0 px-4" disabled={busy || !draft.trim()}>
           {busy ? <Loader2 className="animate-spin" /> : <ArrowUp />}
-          Göndər
+          {t("Göndər")}
         </Button>
       </form>
     </aside>
@@ -258,8 +264,9 @@ export function AssistantPanel({ businessId, onConfirmTransaction }: AssistantPa
 }
 
 function TypingDots() {
+  const t = useT();
   return (
-    <p className="flex w-fit gap-1 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-3" aria-label="Yazır">
+    <p className="flex w-fit gap-1 rounded-2xl rounded-tl-sm bg-muted px-3.5 py-3" aria-label={t("Yazır")}>
       {[0, 150, 300].map((delay) => (
         <span
           key={delay}
@@ -280,24 +287,25 @@ interface ProposalCardProps {
 
 // Confirmation card: nothing is saved until the user presses "Təsdiqlə".
 function ProposalCard({ transaction, status, onConfirm, onCancel }: ProposalCardProps) {
+  const t = useT();
   const open = status === "pending" || status === "saving" || status === "error";
 
   return (
     <div className="rounded-xl border bg-card p-3 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {status === "confirmed" ? "Əlavə edildi" : status === "cancelled" ? "Ləğv edildi" : "Əlavə edilsin?"}
+        {status === "confirmed" ? t("Əlavə edildi") : status === "cancelled" ? t("Ləğv edildi") : t("Əlavə edilsin?")}
       </p>
       <dl className="mt-2 space-y-1 text-sm">
-        <Row label="Növ" value={transaction.type === "income" ? "Gəlir" : "Xərc"} />
-        <Row label="Məbləğ" value={formatAZN(transaction.amount)} strong />
-        <Row label="Kateqoriya" value={transaction.category} />
-        <Row label="Tarix" value={formatDate(transaction.date)} />
-        {transaction.note && <Row label="Qeyd" value={transaction.note} />}
+        <Row label={t("Növ")} value={transaction.type === "income" ? t("Gəlir") : t("Xərc")} />
+        <Row label={t("Məbləğ")} value={formatAZN(transaction.amount)} strong />
+        <Row label={t("Kateqoriya")} value={transaction.category} />
+        <Row label={t("Tarix")} value={formatDate(transaction.date, t)} />
+        {transaction.note && <Row label={t("Qeyd")} value={transaction.note} />}
       </dl>
 
       {status === "error" && (
         <p role="alert" className="mt-2 text-xs text-red-700">
-          Yadda saxlamaq mümkün olmadı. Yenidən cəhd edin.
+          {t("Yadda saxlamaq mümkün olmadı. Yenidən cəhd edin.")}
         </p>
       )}
 
@@ -305,18 +313,18 @@ function ProposalCard({ transaction, status, onConfirm, onCancel }: ProposalCard
         <div className="mt-3 flex gap-2">
           <Button size="sm" className="flex-1" onClick={onConfirm} disabled={status === "saving"}>
             {status === "saving" ? <Loader2 className="animate-spin" /> : <Check />}
-            Təsdiqlə
+            {t("Təsdiqlə")}
           </Button>
           <Button size="sm" variant="outline" onClick={onCancel} disabled={status === "saving"}>
             <X />
-            Ləğv et
+            {t("Ləğv et")}
           </Button>
         </div>
       ) : (
         status === "confirmed" && (
           <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-700">
             <Check className="size-3.5" />
-            Əməliyyat yadda saxlanıldı
+            {t("Əməliyyat yadda saxlanıldı")}
           </p>
         )
       )}

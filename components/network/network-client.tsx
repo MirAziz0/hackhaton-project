@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TRACKS } from "@/lib/constants";
 import { fallbackMatches, matchCandidates, type Match, type PublicProfile } from "@/lib/network";
 import { cn } from "@/lib/utils";
+import { useLocale, useT } from "@/components/i18n/locale-provider";
 
 // How long an AI ranking stays valid in this browser before it is computed again.
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
@@ -23,11 +24,14 @@ interface NetworkClientProps {
 }
 
 export function NetworkClient({ me, directory }: NetworkClientProps) {
-  const cacheKey = `launchlens-matches-${me.id}`;
+  const t = useT();
+  const locale = useLocale();
+  // The reasons are written in one language, so each language keeps its own cached ranking.
+  const cacheKey = `launchlens-matches-${me.id}-${locale}`;
 
   // Shown immediately: the rule-based order, computed in the browser from data already on the
   // page. The AI ranking replaces it as soon as it arrives, so the section is never empty.
-  const instant = useMemo(() => fallbackMatches(me, matchCandidates(me, directory)), [me, directory]);
+  const instant = useMemo(() => fallbackMatches(me, matchCandidates(me, directory), t), [me, directory, t]);
 
   const [aiMatches, setAiMatches] = useState<Match[] | null>(null);
   const [refining, setRefining] = useState(false);
@@ -89,28 +93,28 @@ export function NetworkClient({ me, directory }: NetworkClientProps) {
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">Sizə uyğun sahibkarlar</h2>
+            <h2 className="text-xl font-semibold">{t("Sizə uyğun sahibkarlar")}</h2>
             <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground" aria-live="polite">
               {refining ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin" />
-                  Süni intellekt tövsiyələri dəqiqləşdirir…
+                  {t("Süni intellekt tövsiyələri dəqiqləşdirir…")}
                 </>
               ) : aiMatches ? (
                 <>
                   <Sparkles className="size-3.5 text-primary" />
-                  Süni intellekt profilinizə əsasən ən faydalı əlaqələri seçib və səbəbini izah edir.
+                  {t("Süni intellekt profilinizə əsasən ən faydalı əlaqələri seçib və səbəbini izah edir.")}
                 </>
               ) : failed ? (
-                "AI tövsiyəsi hazırda əlçatan deyil, sahə və şəhərə görə sıralama göstərilir."
+                t("AI tövsiyəsi hazırda əlçatan deyil, sahə və şəhərə görə sıralama göstərilir.")
               ) : (
-                "Sahə və şəhərə görə ilkin sıralama."
+                t("Sahə və şəhərə görə ilkin sıralama.")
               )}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={() => void load(true)} disabled={refining}>
             <RefreshCw className={cn(refining && "animate-spin")} />
-            Yenilə
+            {t("Yenilə")}
           </Button>
         </div>
 
@@ -121,15 +125,15 @@ export function NetworkClient({ me, directory }: NetworkClientProps) {
             ))}
           </div>
         ) : (
-          <EmptyState text="Sahənizə uyğun sahibkar hələ tapılmadı. Aşağıdakı siyahıya baxın." />
+          <EmptyState text={t("Sahənizə uyğun sahibkar hələ tapılmadı. Aşağıdakı siyahıya baxın.")} />
         )}
       </section>
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-xl font-semibold">Bütün sahibkarlar</h2>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Sahə üzrə filtr">
-            {[{ value: "all", label: "Hamısı" }, ...availableTracks].map((item) => (
+          <h2 className="text-xl font-semibold">{t("Bütün sahibkarlar")}</h2>
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t("Sahə üzrə filtr")}>
+            {[{ value: "all", label: t("Hamısı") }, ...availableTracks].map((item) => (
               <button
                 key={item.value}
                 type="button"
@@ -142,7 +146,7 @@ export function NetworkClient({ me, directory }: NetworkClientProps) {
                     : "bg-card hover:border-primary/50",
                 )}
               >
-                {item.label}
+                {t(item.label)}
               </button>
             ))}
           </div>
@@ -155,7 +159,7 @@ export function NetworkClient({ me, directory }: NetworkClientProps) {
             ))}
           </div>
         ) : (
-          <EmptyState text="Hələ başqa sahibkar qeydiyyatdan keçməyib." />
+          <EmptyState text={t("Hələ başqa sahibkar qeydiyyatdan keçməyib.")} />
         )}
       </section>
     </div>

@@ -14,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { TRACKS } from "@/lib/constants";
 import { formatDate } from "@/lib/dates";
 import type { Analysis } from "@/types/analysis";
+import { useT } from "@/components/i18n/locale-provider";
+import type { Translate } from "@/lib/i18n/translate";
 
 type Source = "business" | "pdf" | "form";
 
@@ -32,10 +34,10 @@ const SELECT_CLASS =
   "flex h-11 w-full rounded-md border border-input bg-card px-4 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
 
 // Message for responses that carry no JSON error (for example a host-level timeout page).
-function statusMessage(status: number) {
-  if (status === 413) return "Fayl çox böyükdür. Ən çox 4 MB ölçüdə PDF yükləyin.";
-  if (status === 504 || status === 408) return "Analiz çox uzun çəkdi və dayandırıldı. Zəhmət olmasa yenidən cəhd edin.";
-  return `Serverdə xəta baş verdi (kod ${status}). Zəhmət olmasa yenidən cəhd edin.`;
+function statusMessage(status: number, t: Translate) {
+  if (status === 413) return t("Fayl çox böyükdür. Ən çox 4 MB ölçüdə PDF yükləyin.");
+  if (status === 504 || status === 408) return t("Analiz çox uzun çəkdi və dayandırıldı. Zəhmət olmasa yenidən cəhd edin.");
+  return t("Serverdə xəta baş verdi (kod {status}). Zəhmət olmasa yenidən cəhd edin.", { status });
 }
 
 interface AnalysisWorkspaceProps {
@@ -46,11 +48,12 @@ interface AnalysisWorkspaceProps {
 }
 
 export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessId, defaults }: AnalysisWorkspaceProps) {
+  const t = useT();
   const router = useRouter();
   const tabs: TabItem<Source>[] = [
-    ...(businesses.length ? [{ value: "business" as const, label: "Saxlanmış biznes", icon: Briefcase }] : []),
-    { value: "pdf", label: "PDF yüklə", icon: FileUp },
-    { value: "form", label: "Forma doldur", icon: PenLine },
+    ...(businesses.length ? [{ value: "business" as const, label: t("Saxlanmış biznes"), icon: Briefcase }] : []),
+    { value: "pdf", label: t("PDF yüklə"), icon: FileUp },
+    { value: "form", label: t("Forma doldur"), icon: PenLine },
   ];
 
   const [source, setSource] = useState<Source>(businesses.length ? "business" : "form");
@@ -85,7 +88,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
     setError(null);
     if (next && next.size > MAX_PDF_BYTES) {
       setFile(null);
-      setError("PDF faylı 4 MB-dan böyük olmamalıdır.");
+      setError(t("PDF faylı 4 MB-dan böyük olmamalıdır."));
       return;
     }
     setFile(next);
@@ -109,21 +112,21 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
         error?: string;
       } | null;
       if (!response.ok || !json?.analysis || !json.business) {
-        throw new Error(json?.error ?? (response.ok ? GENERIC_ERROR : statusMessage(response.status)));
+        throw new Error(json?.error ?? (response.ok ? t(GENERIC_ERROR) : statusMessage(response.status, t)));
       }
 
       setFresh((current) => ({ ...current, [json.business!.id]: json.analysis! }));
       setResult({ analysis: json.analysis, businessName: json.business.name });
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : GENERIC_ERROR);
+      setError(err instanceof Error ? err.message : t(GENERIC_ERROR));
     } finally {
       setLoading(false);
     }
   }
 
   if (loading) {
-    return <GeneratingCard title="Planınız təhlil edilir" steps={ANALYSIS_STEPS} hint="Bu, adətən 20–40 saniyə çəkir." />;
+    return <GeneratingCard title={t("Planınız təhlil edilir")} steps={ANALYSIS_STEPS} hint={t("Bu, adətən 20–40 saniyə çəkir.")} />;
   }
 
   if (result) {
@@ -136,10 +139,10 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
-            Yeni analiz
+            {t("Yeni analiz")}
           </button>
           <h2 className="text-2xl font-semibold tracking-tight">{result.businessName}</h2>
-          <p className="text-sm text-muted-foreground">Analiz tarixi: {formatDate(result.analysis.created_at)}</p>
+          <p className="text-sm text-muted-foreground">{t("Analiz tarixi:")} {formatDate(result.analysis.created_at, t)}</p>
         </div>
         <AnalysisResults analysis={result.analysis} />
       </div>
@@ -155,7 +158,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
           {source === "business" && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="business">Biznes seçin</Label>
+                <Label htmlFor="business">{t("Biznes seçin")}</Label>
                 <select
                   id="business"
                   value={businessId}
@@ -169,7 +172,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
                   ))}
                 </select>
                 <p className="text-xs text-muted-foreground">
-                  Studiyada və ya əvvəlki analizlərdə saxladığınız bizneslər.
+                  {t("Studiyada və ya əvvəlki analizlərdə saxladığınız bizneslər.")}
                 </p>
               </div>
 
@@ -179,9 +182,9 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
                     <History className="size-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">
-                        Son analiz: {lastAnalysis.overall_score} / 100
+                        {t("Son analiz: {score} / 100", { score: lastAnalysis.overall_score })}
                       </p>
-                      <p className="text-xs text-muted-foreground">{formatDate(lastAnalysis.created_at)}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(lastAnalysis.created_at, t)}</p>
                     </div>
                   </div>
                   <Button
@@ -189,7 +192,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
                     size="sm"
                     onClick={() => setResult({ analysis: lastAnalysis, businessName: selectedBusiness.name })}
                   >
-                    Nəticəyə bax
+                    {t("Nəticəyə bax")}
                   </Button>
                 </div>
               )}
@@ -198,7 +201,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
 
           {source === "pdf" && (
             <div className="space-y-2">
-              <Label htmlFor="plan-file">Biznes planı (PDF, ən çox 4 MB)</Label>
+              <Label htmlFor="plan-file">{t("Biznes planı (PDF, ən çox 4 MB)")}</Label>
               <input
                 ref={fileInput}
                 id="plan-file"
@@ -217,14 +220,14 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
                     <FileText className="size-8 text-primary" />
                     <span className="font-medium">{file.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {(file.size / 1024 / 1024).toFixed(1)} MB · dəyişmək üçün klikləyin
+                      {t("{size} MB · dəyişmək üçün klikləyin", { size: (file.size / 1024 / 1024).toFixed(1) })}
                     </span>
                   </>
                 ) : (
                   <>
                     <FileUp className="size-8 text-muted-foreground" />
-                    <span className="font-medium">PDF faylı seçmək üçün klikləyin</span>
-                    <span className="text-xs text-muted-foreground">Mətn əsaslı PDF olmalıdır (skan yox)</span>
+                    <span className="font-medium">{t("PDF faylı seçmək üçün klikləyin")}</span>
+                    <span className="text-xs text-muted-foreground">{t("Mətn əsaslı PDF olmalıdır (skan yox)")}</span>
                   </>
                 )}
               </button>
@@ -234,38 +237,38 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
           {source === "form" && (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="name">Biznesin adı</Label>
+                <Label htmlFor="name">{t("Biznesin adı")}</Label>
                 <Input
                   id="name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="Məsələn: Nur Cosmetics"
+                  placeholder={t("Məsələn: Nur Cosmetics")}
                   maxLength={100}
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="idea">İdeya və plan</Label>
+                <Label htmlFor="idea">{t("İdeya və plan")}</Label>
                 <Textarea
                   id="idea"
                   value={form.idea}
                   onChange={(e) => setForm({ ...form, idea: e.target.value })}
-                  placeholder="Biznesinizi, satış kanallarını və planlaşdırdığınız xərcləri təsvir edin..."
+                  placeholder={t("Biznesinizi, satış kanallarını və planlaşdırdığınız xərcləri təsvir edin...")}
                   className="min-h-32"
                   maxLength={4000}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Məkan</Label>
+                <Label htmlFor="location">{t("Məkan")}</Label>
                 <Input
                   id="location"
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  placeholder="Bakı, Nəsimi"
+                  placeholder={t("Bakı, Nəsimi")}
                   maxLength={100}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="budget">Büdcə (AZN)</Label>
+                <Label htmlFor="budget">{t("Büdcə (AZN)")}</Label>
                 <Input
                   id="budget"
                   inputMode="numeric"
@@ -276,12 +279,12 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
                 />
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="products">Məhsul və xidmətlər</Label>
+                <Label htmlFor="products">{t("Məhsul və xidmətlər")}</Label>
                 <Input
                   id="products"
                   value={form.products}
                   onChange={(e) => setForm({ ...form, products: e.target.value })}
-                  placeholder="Üz kremləri, sabunlar, hədiyyə dəstləri"
+                  placeholder={t("Üz kremləri, sabunlar, hədiyyə dəstləri")}
                   maxLength={1000}
                 />
               </div>
@@ -289,16 +292,16 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
           )}
 
           <div className="space-y-2 border-t pt-5">
-            <Label htmlFor="sector">Biznesin sahəsi</Label>
+            <Label htmlFor="sector">{t("Biznesin sahəsi")}</Label>
             <select id="sector" value={sector} onChange={(e) => setSector(e.target.value)} className={SELECT_CLASS}>
               {TRACKS.map((track) => (
                 <option key={track.value} value={track.value}>
-                  {track.label}
+                  {t(track.label)}
                 </option>
               ))}
             </select>
             <p className="text-xs text-muted-foreground">
-              Bazar məlumatları bu sahə üzrə seçilir. Təhsil və “Digər” sahələri üçün hələ bazar məlumatı yoxdur.
+              {t("Bazar məlumatları bu sahə üzrə seçilir. Təhsil və “Digər” sahələri üçün hələ bazar məlumatı yoxdur.")}
             </p>
           </div>
 
@@ -311,7 +314,7 @@ export function AnalysisWorkspace({ businesses, latestAnalyses, initialBusinessI
           <div className="flex justify-end">
             <Button size="lg" onClick={() => void analyze()} disabled={!canSubmit}>
               <SearchCheck />
-              {source === "business" && lastAnalysis ? "Yenidən analiz et" : "Analiz et"}
+              {source === "business" && lastAnalysis ? t("Yenidən analiz et") : t("Analiz et")}
             </Button>
           </div>
         </CardContent>

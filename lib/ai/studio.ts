@@ -1,8 +1,9 @@
 import "server-only";
 import { generateJson } from "@/lib/ai/llm";
-import { STUDIO_CLARIFY_SYSTEM, STUDIO_PLAN_SYSTEM, studioUserPrompt } from "@/lib/ai/prompts";
+import { studioClarifySystem, studioPlanSystem, studioUserPrompt } from "@/lib/ai/prompts";
 import { clarifySchema, studioPlanSchema } from "@/lib/ai/schemas";
 import { buildForecast } from "@/lib/finance/forecast";
+import type { Locale } from "@/lib/i18n/config";
 import { resolveCoordinates } from "@/lib/places";
 import type { Profile } from "@/types/database";
 import type { StudioBusiness } from "@/types/studio";
@@ -10,11 +11,11 @@ import type { StudioBusiness } from "@/types/studio";
 type Answer = { question: string; answer: string };
 
 // Step 1: decide whether the idea needs 2-3 clarifying questions.
-export async function clarifyIdea(profile: Profile, idea: string): Promise<string[]> {
+export async function clarifyIdea(profile: Profile, idea: string, locale: Locale): Promise<string[]> {
   const output = await generateJson({
     schema: clarifySchema,
-    system: STUDIO_CLARIFY_SYSTEM,
-    user: studioUserPrompt(profile, idea),
+    system: studioClarifySystem(locale),
+    user: studioUserPrompt(profile, idea, locale),
     fast: true,
   });
   return output.needs_clarification ? output.questions.slice(0, 3) : [];
@@ -26,11 +27,16 @@ function cleanHexColors(colors: string[]) {
 }
 
 // Step 2: generate the full plan. The model writes the content; code does the math and the geo lookup.
-export async function generatePlan(profile: Profile, idea: string, answers: Answer[]): Promise<StudioBusiness> {
+export async function generatePlan(
+  profile: Profile,
+  idea: string,
+  answers: Answer[],
+  locale: Locale,
+): Promise<StudioBusiness> {
   const output = await generateJson({
     schema: studioPlanSchema,
-    system: STUDIO_PLAN_SYSTEM,
-    user: studioUserPrompt(profile, idea, answers),
+    system: studioPlanSystem(locale),
+    user: studioUserPrompt(profile, idea, locale, answers),
   });
 
   return {

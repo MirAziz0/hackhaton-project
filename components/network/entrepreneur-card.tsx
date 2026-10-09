@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin, Sparkles } from "lucide-react";
 import { ContactButton } from "@/components/network/contact-button";
@@ -6,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { lookingForLabel, stageLabel, trackLabel } from "@/lib/constants";
 import type { PublicProfile } from "@/lib/network";
 import { initials } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
 
 interface EntrepreneurCardProps {
   profile: PublicProfile;
@@ -14,6 +17,7 @@ interface EntrepreneurCardProps {
 }
 
 export function EntrepreneurCard({ profile, reason }: EntrepreneurCardProps) {
+  const t = useT();
   return (
     <Card className="flex h-full flex-col">
       <CardContent className="flex flex-1 flex-col gap-4 p-5">
@@ -23,18 +27,18 @@ export function EntrepreneurCard({ profile, reason }: EntrepreneurCardProps) {
           </span>
           <div className="min-w-0 flex-1">
             <Link href={`/profile/${profile.id}`} className="block truncate font-semibold hover:text-primary hover:underline">
-              {profile.full_name || "Sahibkar"}
+              {profile.full_name || t("Sahibkar")}
             </Link>
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="size-3.5 shrink-0" />
-              <span className="truncate">{profile.city || "—"}</span>
+              <span className="truncate">{profile.city ? t(profile.city) : "—"}</span>
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-1.5">
-          <Badge>{trackLabel(profile.track)}</Badge>
-          <Badge variant="outline">{stageLabel(profile.stage)}</Badge>
+          <Badge>{t(trackLabel(profile.track))}</Badge>
+          <Badge variant="outline">{t(stageLabel(profile.stage))}</Badge>
         </div>
 
         {reason ? (
@@ -48,8 +52,8 @@ export function EntrepreneurCard({ profile, reason }: EntrepreneurCardProps) {
 
         {profile.looking_for?.length > 0 && (
           <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">Axtarır: </span>
-            {profile.looking_for.map(lookingForLabel).join(", ")}
+            <span className="font-medium text-foreground">{t("Axtarır:")} </span>
+            {profile.looking_for.map((item) => t(lookingForLabel(item))).join(", ")}
           </p>
         )}
 

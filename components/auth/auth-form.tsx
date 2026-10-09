@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import type { Translate } from "@/lib/i18n/translate";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/i18n/locale-provider";
 
 type Mode = "login" | "register";
 
@@ -16,16 +18,17 @@ const LABEL = "text-sm font-medium text-foreground";
 const BUTTON =
   "flex h-12 w-full items-center justify-center gap-2 rounded-[10px] text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 [&_svg]:size-4";
 
-function translateError(message: string) {
+function translateError(message: string, t: Translate) {
   const text = message.toLowerCase();
-  if (text.includes("invalid login credentials")) return "E-poçt və ya şifrə yanlışdır.";
-  if (text.includes("email not confirmed")) return "E-poçt ünvanınız hələ təsdiqlənməyib.";
-  if (text.includes("env vars")) return "Supabase konfiqurasiya edilməyib. .env.local faylını yoxlayın.";
-  if (text.includes("failed to fetch")) return "Serverə qoşulmaq mümkün olmadı. İnternet bağlantınızı yoxlayın.";
-  return GENERIC_ERROR;
+  if (text.includes("invalid login credentials")) return t("E-poçt və ya şifrə yanlışdır.");
+  if (text.includes("email not confirmed")) return t("E-poçt ünvanınız hələ təsdiqlənməyib.");
+  if (text.includes("env vars")) return t("Supabase konfiqurasiya edilməyib. .env.local faylını yoxlayın.");
+  if (text.includes("failed to fetch")) return t("Serverə qoşulmaq mümkün olmadı. İnternet bağlantınızı yoxlayın.");
+  return t(GENERIC_ERROR);
 }
 
 export function AuthForm({ mode }: { mode: Mode }) {
+  const t = useT();
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -53,7 +56,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     try {
       await signIn(email, password);
     } catch (err) {
-      setError(translateError(err instanceof Error ? err.message : ""));
+      setError(translateError(err instanceof Error ? err.message : "", t));
       setLoading(false);
     }
   }
@@ -70,13 +73,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
       });
       if (!response.ok) {
         const body = (await response.json().catch(() => null)) as { error?: string } | null;
-        setError(body?.error ?? GENERIC_ERROR);
+        setError(body?.error ?? t(GENERIC_ERROR));
         setLoading(false);
         return;
       }
       await signIn(email, password);
     } catch (err) {
-      setError(translateError(err instanceof Error ? err.message : ""));
+      setError(translateError(err instanceof Error ? err.message : "", t));
       setLoading(false);
     }
   }
@@ -92,12 +95,12 @@ export function AuthForm({ mode }: { mode: Mode }) {
       <div className="mx-auto my-auto w-full max-w-sm py-10">
         <div className="space-y-3 text-center">
           <h2 className="font-display text-5xl leading-tight tracking-tight text-foreground">
-            {isLogin ? "Xoş gəlmisiniz" : "Hesab yaradın"}
+            {isLogin ? t("Xoş gəlmisiniz") : t("Hesab yaradın")}
           </h2>
           <p className="text-sm text-muted-foreground">
             {isLogin
-              ? "Hesabınıza daxil olmaq üçün e-poçt və şifrənizi yazın"
-              : "Bir dəqiqəyə qeydiyyatdan keçin və ideyanızı plana çevirin"}
+              ? t("Hesabınıza daxil olmaq üçün e-poçt və şifrənizi yazın")
+              : t("Bir dəqiqəyə qeydiyyatdan keçin və ideyanızı plana çevirin")}
           </p>
         </div>
 
@@ -105,13 +108,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
           {!isLogin && (
             <div className="space-y-2">
               <label htmlFor="fullName" className={LABEL}>
-                Ad və soyad
+                {t("Ad və soyad")}
               </label>
               <input
                 id="fullName"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Adınızı və soyadınızı yazın"
+                placeholder={t("Adınızı və soyadınızı yazın")}
                 autoComplete="name"
                 minLength={2}
                 required
@@ -122,14 +125,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
           <div className="space-y-2">
             <label htmlFor="email" className={LABEL}>
-              E-poçt
+              {t("E-poçt")}
             </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="E-poçt ünvanınızı yazın"
+              placeholder={t("E-poçt ünvanınızı yazın")}
               autoComplete="email"
               required
               className={FIELD}
@@ -138,7 +141,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
           <div className="space-y-2">
             <label htmlFor="password" className={LABEL}>
-              Şifrə
+              {t("Şifrə")}
             </label>
             <div className="relative">
               <input
@@ -146,7 +149,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={isLogin ? "Şifrənizi yazın" : "Ən azı 6 simvol"}
+                placeholder={isLogin ? t("Şifrənizi yazın") : t("Ən azı 6 simvol")}
                 autoComplete={isLogin ? "current-password" : "new-password"}
                 minLength={6}
                 required
@@ -155,7 +158,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               <button
                 type="button"
                 onClick={() => setShowPassword((current) => !current)}
-                aria-label={showPassword ? "Şifrəni gizlət" : "Şifrəni göstər"}
+                aria-label={showPassword ? t("Şifrəni gizlət") : t("Şifrəni göstər")}
                 aria-pressed={showPassword}
                 className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground"
               >
@@ -173,16 +176,16 @@ export function AuthForm({ mode }: { mode: Mode }) {
           <div className="space-y-3 pt-1">
             <button type="submit" disabled={loading} className={`${BUTTON} bg-black text-white hover:bg-black/85`}>
               {loading && <Loader2 className="animate-spin" />}
-              {isLogin ? "Daxil ol" : "Qeydiyyatdan keç"}
+              {isLogin ? t("Daxil ol") : t("Qeydiyyatdan keç")}
             </button>
           </div>
         </form>
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        {isLogin ? "Hesabınız yoxdur? " : "Artıq hesabınız var? "}
+        {isLogin ? t("Hesabınız yoxdur? ") : t("Artıq hesabınız var? ")}
         <Link href={isLogin ? "/register" : "/login"} className="font-semibold text-foreground hover:underline">
-          {isLogin ? "Qeydiyyatdan keçin" : "Daxil olun"}
+          {isLogin ? t("Qeydiyyatdan keçin") : t("Daxil olun")}
         </Link>
       </p>
     </div>

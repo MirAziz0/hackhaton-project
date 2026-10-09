@@ -9,6 +9,7 @@ import {
   simulatePriceChange,
   summarize,
 } from "@/lib/finance/dashboard";
+import type { Translate } from "@/lib/i18n/translate";
 import type { TransactionProposal } from "@/types/assistant";
 import type { Transaction } from "@/types/database";
 
@@ -87,9 +88,9 @@ export const ASSISTANT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
         properties: {
           type: { type: "string", enum: ["income", "expense"] },
           amount: { type: "number", description: "Positive amount in AZN." },
-          category: { type: "string", description: "Short category name in Azerbaijani." },
+          category: { type: "string", description: "Short category name in the user's language." },
           date: { type: "string", description: "YYYY-MM-DD. Omit to use today." },
-          note: { type: "string", description: "Optional short note in Azerbaijani." },
+          note: { type: "string", description: "Optional short note in the user's language." },
         },
         required: ["type", "amount", "category"],
         additionalProperties: false,
@@ -116,6 +117,8 @@ const transactionArgs = z.object({
 interface ToolContext {
   transactions: Transaction[];
   today: string;
+  // Translates period and month labels, which the model repeats in its answer.
+  t: Translate;
 }
 
 export interface ToolOutcome {
@@ -137,26 +140,26 @@ export function executeTool(name: string, rawArgs: string, context: ToolContext)
   } catch {
     return { result: { error: "Arguments were not valid JSON." } };
   }
-  const { transactions, today } = context;
+  const { transactions, today, t } = context;
 
   switch (name) {
     case "get_summary": {
       const parsed = periodArgs.safeParse(args);
       if (!parsed.success) return { result: { error: "Missing 'period'." } };
-      const resolved = resolvePeriod(parsed.data.period, today);
+      const resolved = resolvePeriod(parsed.data.period, today, t);
       return { result: resolved ? summarize(transactions, resolved) : badPeriod(parsed.data.period) };
     }
     case "get_expenses_by_category": {
       const parsed = periodArgs.safeParse(args);
       if (!parsed.success) return { result: { error: "Missing 'period'." } };
-      const resolved = resolvePeriod(parsed.data.period, today);
+      const resolved = resolvePeriod(parsed.data.period, today, t);
       return { result: resolved ? categoryBreakdown(transactions, resolved) : badPeriod(parsed.data.period) };
     }
     case "compare_periods": {
       const parsed = compareArgs.safeParse(args);
       if (!parsed.success) return { result: { error: "Missing 'period_a' or 'period_b'." } };
-      const a = resolvePeriod(parsed.data.period_a, today);
-      const b = resolvePeriod(parsed.data.period_b, today);
+      const a = resolvePeriod(parsed.data.period_a, today, t);
+      const b = resolvePeriod(parsed.data.period_b, today, t);
       if (!a) return { result: badPeriod(parsed.data.period_a) };
       if (!b) return { result: badPeriod(parsed.data.period_b) };
       return { result: comparePeriods(transactions, a, b) };
@@ -164,7 +167,7 @@ export function executeTool(name: string, rawArgs: string, context: ToolContext)
     case "get_monthly_trend": {
       const parsed = trendArgs.safeParse(args);
       if (!parsed.success) return { result: { error: "'months' must be an integer from 2 to 12." } };
-      return { result: monthlySeries(transactions, parsed.data.months, today) };
+      return { result: monthlySeries(transactions, parsed.data.months, today, t) };
     }
     case "simulate_price_change": {
       const parsed = priceArgs.safeParse(args);

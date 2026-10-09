@@ -1,4 +1,5 @@
 import { addMonths, lastDayOfMonth, monthKey, monthLabel, monthShortLabel, monthsBetween } from "@/lib/dates";
+import { sourceText, type Translate } from "@/lib/i18n/translate";
 import type { FinancialForecast, Transaction } from "@/types/database";
 
 // All dashboard arithmetic lives here. The AI assistant calls these functions through tools
@@ -32,7 +33,7 @@ export function percentChange(current: number, previous: number) {
 export const PERIOD_KEYWORDS = ["this_month", "last_month", "last_3_months", "last_6_months", "this_year", "all"] as const;
 
 // Accepts a keyword from PERIOD_KEYWORDS or a specific month as "YYYY-MM".
-export function resolvePeriod(spec: string, today: string): Period | null {
+export function resolvePeriod(spec: string, today: string, t: Translate = sourceText): Period | null {
   const current = monthKey(today);
   const range = (fromKey: string, toKey: string, label: string): Period => ({
     from: `${fromKey}-01`,
@@ -42,21 +43,21 @@ export function resolvePeriod(spec: string, today: string): Period | null {
 
   switch (spec) {
     case "this_month":
-      return range(current, current, monthLabel(current));
+      return range(current, current, monthLabel(current, t));
     case "last_month": {
       const previous = addMonths(current, -1);
-      return range(previous, previous, monthLabel(previous));
+      return range(previous, previous, monthLabel(previous, t));
     }
     case "last_3_months":
-      return range(addMonths(current, -2), current, "Son 3 ay");
+      return range(addMonths(current, -2), current, t("Son 3 ay"));
     case "last_6_months":
-      return range(addMonths(current, -5), current, "Son 6 ay");
+      return range(addMonths(current, -5), current, t("Son 6 ay"));
     case "this_year":
-      return range(`${current.slice(0, 4)}-01`, `${current.slice(0, 4)}-12`, `${current.slice(0, 4)}-ci il`);
+      return range(`${current.slice(0, 4)}-01`, `${current.slice(0, 4)}-12`, t("{year}-ci il", { year: current.slice(0, 4) }));
     case "all":
-      return { from: "0000-01-01", to: "9999-12-31", label: "Bütün dövr" };
+      return { from: "0000-01-01", to: "9999-12-31", label: t("Bütün dövr") };
     default:
-      return /^\d{4}-(0[1-9]|1[0-2])$/.test(spec) ? range(spec, spec, monthLabel(spec)) : null;
+      return /^\d{4}-(0[1-9]|1[0-2])$/.test(spec) ? range(spec, spec, monthLabel(spec, t)) : null;
   }
 }
 
@@ -155,14 +156,19 @@ export interface MonthPoint {
 }
 
 // The last `count` calendar months ending with the current one.
-export function monthlySeries(transactions: Transaction[], count: number, today: string): MonthPoint[] {
+export function monthlySeries(
+  transactions: Transaction[],
+  count: number,
+  today: string,
+  t: Translate = sourceText,
+): MonthPoint[] {
   const current = monthKey(today);
   return Array.from({ length: count }, (_, index) => {
     const key = addMonths(current, index - (count - 1));
     const summary = summarize(transactions, resolvePeriod(key, today)!);
     return {
       month: key,
-      label: monthShortLabel(key),
+      label: monthShortLabel(key, t),
       income: summary.income,
       expenses: summary.expenses,
       net_profit: summary.net_profit,
@@ -209,7 +215,12 @@ export function firstTransactionMonth(transactions: Transaction[]) {
 }
 
 // Plan month N is the Nth calendar month counted from the first transaction.
-export function forecastVsActual(transactions: Transaction[], forecast: FinancialForecast | null, today: string) {
+export function forecastVsActual(
+  transactions: Transaction[],
+  forecast: FinancialForecast | null,
+  today: string,
+  t: Translate = sourceText,
+) {
   const start = firstTransactionMonth(transactions);
   if (!forecast?.monthly_projection?.length || !start) return [];
   const elapsed = monthsBetween(start, monthKey(today));
@@ -218,7 +229,7 @@ export function forecastVsActual(transactions: Transaction[], forecast: Financia
     const key = addMonths(start, index);
     return {
       month: key,
-      label: monthShortLabel(key),
+      label: monthShortLabel(key, t),
       forecast: planned.revenue,
       // Future months have no actual value yet.
       actual: index <= elapsed ? summarize(transactions, resolvePeriod(key, today)!).income : null,

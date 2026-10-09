@@ -4,12 +4,14 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Plus } from "lucide-react";
+import { LanguageSwitch } from "@/components/i18n/language-switch";
 import { Logo } from "@/components/layout/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { trackLabel } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { cn, initials } from "@/lib/utils";
 import type { Profile } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
@@ -24,6 +26,7 @@ const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : us
 
 // Top navigation for the signed-in area: logo, pill menu, quick action and the user.
 export function TopNav({ profile }: { profile: Profile }) {
+  const t = useT();
   const pathname = usePathname();
   const router = useRouter();
   const profileHref = `/profile/${profile.id}`;
@@ -52,7 +55,7 @@ export function TopNav({ profile }: { profile: Profile }) {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [active]);
+  }, [active, t]);
 
   useEffect(() => {
     if (!pill || animate) return;
@@ -68,13 +71,13 @@ export function TopNav({ profile }: { profile: Profile }) {
 
   return (
     <header className="mx-auto flex max-w-[96rem] flex-wrap items-center gap-x-6 gap-y-3 px-5 py-5 lg:px-10">
-      <Link href="/" aria-label="Ana səhifə">
+      <Link href="/" aria-label={t("Ana səhifə")}>
         <Logo />
       </Link>
 
       <nav
         ref={navRef}
-        aria-label="Əsas menyu"
+        aria-label={t("Əsas menyu")}
         className="glass-light relative order-last flex w-full gap-1 overflow-x-auto rounded-full p-1.5 md:order-none md:w-auto"
       >
         {pill && (
@@ -112,16 +115,17 @@ export function TopNav({ profile }: { profile: Profile }) {
                 isActive && !pill && "bg-brand",
               )}
             >
-              {label}
+              {t(label)}
             </Link>
           );
         })}
       </nav>
 
       <div className="ml-auto flex items-center gap-3">
+        <LanguageSwitch />
         <Link href="/studio" className={buttonVariants({ className: "h-11 px-5" })}>
           <Plus />
-          <span className="hidden sm:inline">Yeni ideya</span>
+          <span className="hidden sm:inline">{t("Yeni ideya")}</span>
         </Link>
 
         <Link href={profileHref} className="flex items-center gap-3 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-white/60">
@@ -129,16 +133,16 @@ export function TopNav({ profile }: { profile: Profile }) {
             {initials(profile.full_name)}
           </span>
           <span className="hidden min-w-0 lg:block">
-            <span className="block max-w-40 truncate text-sm font-semibold">{profile.full_name || "İstifadəçi"}</span>
-            <span className="block max-w-40 truncate text-xs text-muted-foreground">{trackLabel(profile.track)}</span>
+            <span className="block max-w-40 truncate text-sm font-semibold">{profile.full_name || t("İstifadəçi")}</span>
+            <span className="block max-w-40 truncate text-xs text-muted-foreground">{t(trackLabel(profile.track))}</span>
           </span>
         </Link>
 
         <button
           type="button"
           onClick={signOut}
-          aria-label="Çıxış"
-          title="Çıxış"
+          aria-label={t("Çıxış")}
+          title={t("Çıxış")}
           className="glass-light flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
         >
           <LogOut className="size-4" />

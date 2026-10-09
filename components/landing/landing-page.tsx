@@ -15,10 +15,12 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import { LanguageSwitch } from "@/components/i18n/language-switch";
 import { LandingBackground } from "@/components/landing/landing-background";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LogoMark } from "@/components/layout/logo";
 import { APP_NAME } from "@/lib/constants";
+import { getT } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
 // Floating result cards in the hero: what the platform produces from one idea.
@@ -50,7 +52,8 @@ const AUDIENCE: { icon: LucideIcon; title: string; text: string }[] = [
 
 const CTA_PRIMARY = "glass-button glass-button-primary h-13 px-8 text-sm";
 
-export function LandingPage() {
+export async function LandingPage() {
+  const t = await getT();
   return (
     <div className="landing-backdrop relative isolate min-h-screen text-white">
       <LandingBackground />
@@ -65,11 +68,12 @@ export function LandingPage() {
         <LandingNav />
 
         <div className="flex items-center gap-3">
-          <Link href="/login" className="glass-button h-11 px-5 text-sm">
-            Daxil ol
+          <LanguageSwitch variant="dark" />
+          <Link href="/login" className="glass-button hidden h-11 px-5 text-sm sm:inline-flex">
+            {t("Daxil ol")}
           </Link>
           <Link href="/register" className="glass-button glass-button-primary h-11 px-5 text-sm">
-            Qeydiyyat
+            {t("Qeydiyyat")}
           </Link>
         </div>
         </div>
@@ -80,23 +84,23 @@ export function LandingPage() {
           <div className="space-y-7">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90">
               <Star className="size-4 fill-[#a78bfa] text-[#a78bfa]" />
-              Süni intellektlə işləyən biznes platforması
+              {t("Süni intellektlə işləyən biznes platforması")}
             </p>
             <h1 className="text-5xl font-bold leading-[1.15] tracking-tight sm:text-6xl xl:text-7xl">
-              İdeyadan
+              {t("İdeyadan")}
               {/* Padding below the baseline keeps the tails of "ğ" inside the clipped gradient. */}
               <span className="block bg-gradient-to-r from-[#c4b5fd] via-[#a5b4fc] to-[#67e8f9] bg-clip-text pb-3 text-transparent drop-shadow-[0_6px_28px_rgb(139_92_246/0.45)]">
-                Biznes Uğuruna
+                {t("Biznes Uğuruna")}
               </span>
             </h1>
             <p className="max-w-md text-lg leading-relaxed text-white/80">
-              Planla. Başla. Təhlil et. İdarə et. Böyü.
+              {t("Planla. Başla. Təhlil et. İdarə et. Böyü.")}
               <br />
-              Sahibkarlarla əlaqə qur.
+              {t("Sahibkarlarla əlaqə qur.")}
             </p>
             <div className="flex flex-wrap gap-4 pt-1">
               <Link href="/register" className={CTA_PRIMARY}>
-                İndi başla
+                {t("İndi başla")}
               </Link>
             </div>
           </div>
@@ -118,8 +122,8 @@ export function LandingPage() {
                     <Icon className="size-5" />
                   </span>
                   <span>
-                    <span className="block whitespace-nowrap font-semibold">{title}</span>
-                    <span className="block text-sm text-white/70">{status}</span>
+                    <span className="block whitespace-nowrap font-semibold">{t(title)}</span>
+                    <span className="block text-sm text-white/70">{t(status)}</span>
                   </span>
                 </div>
               </div>
@@ -128,37 +132,37 @@ export function LandingPage() {
         </section>
 
         <section id="features" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
-          <SectionHeading eyebrow="İmkanlar" title="Bir platformada bütün yol" />
+          <SectionHeading eyebrow={t("İmkanlar")} title={t("Bir platformada bütün yol")} />
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(({ icon: Icon, title, text }) => (
               <div key={title} className="rounded-3xl border border-white/10 bg-white/[0.06] p-6 transition-colors hover:bg-white/10">
                 <span className="flex size-12 items-center justify-center rounded-2xl bg-[#7c5cff]/90">
                   <Icon className="size-6" />
                 </span>
-                <h3 className="mt-5 text-lg font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/70">{text}</p>
+                <h3 className="mt-5 text-lg font-semibold">{t(title)}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{t(text)}</p>
               </div>
             ))}
           </div>
         </section>
 
         <section id="how" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
-          <SectionHeading eyebrow="Necə işləyir" title="Üç addımda başlayın" />
+          <SectionHeading eyebrow={t("Necə işləyir")} title={t("Üç addımda başlayın")} />
           <ol className="mt-12 grid gap-5 lg:grid-cols-3">
             {STEPS.map((step, index) => (
               <li key={step.title} className="rounded-3xl border border-white/10 bg-white/[0.06] p-7">
                 <span className="bg-gradient-to-r from-[#a78bfa] to-[#60a5fa] bg-clip-text text-5xl font-semibold text-transparent">
                   {index + 1}
                 </span>
-                <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/70">{step.text}</p>
+                <h3 className="mt-4 text-lg font-semibold">{t(step.title)}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/70">{t(step.text)}</p>
               </li>
             ))}
           </ol>
         </section>
 
         <section id="audience" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
-          <SectionHeading eyebrow="Kimlər üçün" title="Sahibkarlar, banklar və inkubatorlar üçün" />
+          <SectionHeading eyebrow={t("Kimlər üçün")} title={t("Sahibkarlar, banklar və inkubatorlar üçün")} />
           <div className="mt-12 grid gap-5 lg:grid-cols-3">
             {AUDIENCE.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex gap-4 rounded-3xl border border-white/10 bg-white/[0.06] p-6">
@@ -166,8 +170,8 @@ export function LandingPage() {
                   <Icon className="size-6 text-[#a78bfa]" />
                 </span>
                 <div>
-                  <h3 className="text-lg font-semibold">{title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-white/70">{text}</p>
+                  <h3 className="text-lg font-semibold">{t(title)}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-white/70">{t(text)}</p>
                 </div>
               </div>
             ))}
@@ -176,13 +180,13 @@ export function LandingPage() {
 
         <section className="mx-auto max-w-7xl px-6 pb-24 pt-8 lg:px-10">
           <div className="rounded-[2rem] border border-white/15 bg-[linear-gradient(135deg,rgb(124_92_255/0.45),rgb(59_130_246/0.3))] px-8 py-14 text-center">
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">İdeyanızı bu gün plana çevirin</h2>
+            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("İdeyanızı bu gün plana çevirin")}</h2>
             <p className="mx-auto mt-3 max-w-xl text-white/80">
-              Qeydiyyat bir dəqiqə çəkir və ilk biznes planınız bir neçə dəqiqəyə hazır olur.
+              {t("Qeydiyyat bir dəqiqə çəkir və ilk biznes planınız bir neçə dəqiqəyə hazır olur.")}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
               <Link href="/register" className={CTA_PRIMARY}>
-                Pulsuz başla
+                {t("Pulsuz başla")}
               </Link>
             </div>
           </div>
@@ -192,7 +196,7 @@ export function LandingPage() {
       <footer className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-6 text-sm text-white/60 lg:px-10">
           <span>© 2026 {APP_NAME}</span>
-          <span>Süni intellektli biznes tərəfdaşınız</span>
+          <span>{t("Süni intellektli biznes tərəfdaşınız")}</span>
         </div>
       </footer>
     </div>

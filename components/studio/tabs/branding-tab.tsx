@@ -1,9 +1,12 @@
+"use client";
+
 /* eslint-disable @next/next/no-img-element -- generated images come from Supabase Storage or data URIs */
 import { ImageIcon, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Branding } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 export type ImageStatus = "idle" | "loading" | "done" | "error";
 
@@ -15,6 +18,7 @@ interface BrandingTabProps {
 }
 
 export function BrandingTab({ branding, imageStatus, imageNotice, onGenerateImages }: BrandingTabProps) {
+  const t = useT();
   const hasImages = branding.logo_urls.length > 0 || Boolean(branding.banner_url);
   const loading = imageStatus === "loading";
 
@@ -23,7 +27,7 @@ export function BrandingTab({ branding, imageStatus, imageNotice, onGenerateImag
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Ad ideyaları</CardTitle>
+            <CardTitle>{t("Ad ideyaları")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {branding.name_ideas.map((name) => (
@@ -35,7 +39,7 @@ export function BrandingTab({ branding, imageStatus, imageNotice, onGenerateImag
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Şüarlar</CardTitle>
+            <CardTitle>{t("Şüarlar")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {branding.slogans.map((slogan) => (
@@ -50,16 +54,16 @@ export function BrandingTab({ branding, imageStatus, imageNotice, onGenerateImag
       <Card>
         <CardHeader className="flex-row items-start justify-between gap-4">
           <div className="space-y-1.5">
-            <CardTitle>Loqo və banner</CardTitle>
+            <CardTitle>{t("Loqo və banner")}</CardTitle>
             <CardDescription>
               {loading
-                ? "Şəkillər yaradılır, bu bir dəqiqəyə qədər çəkə bilər. Digər bölmələrə baxa bilərsiniz."
-                : "Süni intellektin brendiniz üçün hazırladığı vizuallar."}
+                ? t("Şəkillər yaradılır, bu bir dəqiqəyə qədər çəkə bilər. Digər bölmələrə baxa bilərsiniz.")
+                : t("Süni intellektin brendiniz üçün hazırladığı vizuallar.")}
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={onGenerateImages} disabled={loading}>
             {loading ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-            {hasImages ? "Yenidən yarat" : "Şəkilləri yarat"}
+            {hasImages ? t("Yenidən yarat") : t("Şəkilləri yarat")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -91,7 +95,7 @@ export function BrandingTab({ branding, imageStatus, imageNotice, onGenerateImag
                   <img
                     key={url}
                     src={url}
-                    alt={`Loqo variantı ${index + 1}`}
+                    alt={t("Loqo variantı {number}", { number: index + 1 })}
                     className="aspect-square w-full rounded-xl border bg-white object-contain"
                   />
                 ))}
@@ -99,7 +103,7 @@ export function BrandingTab({ branding, imageStatus, imageNotice, onGenerateImag
               {branding.banner_url && (
                 <img
                   src={branding.banner_url}
-                  alt="Brend banneri"
+                  alt={t("Brend banneri")}
                   className="aspect-[12/5] w-full rounded-xl border object-cover"
                 />
               )}
@@ -107,7 +111,7 @@ export function BrandingTab({ branding, imageStatus, imageNotice, onGenerateImag
           ) : (
             <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed py-12 text-center">
               <ImageIcon className="size-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Hələ şəkil yaradılmayıb.</p>
+              <p className="text-sm text-muted-foreground">{t("Hələ şəkil yaradılmayıb.")}</p>
             </div>
           )}
         </CardContent>

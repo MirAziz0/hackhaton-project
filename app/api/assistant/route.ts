@@ -9,6 +9,7 @@ import { todayInBaku } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import type { AssistantEvent } from "@/types/assistant";
 import type { Transaction } from "@/types/database";
+import { getLocale, getT } from "@/lib/i18n/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -32,14 +33,15 @@ interface PendingToolCall {
 }
 
 export async function POST(request: Request) {
+  const t = await getT();
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Davam etmək üçün daxil olun." }, { status: 401 });
+  if (!user) return NextResponse.json({ error: t("Davam etmək üçün daxil olun.") }, { status: 401 });
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Sorğu düzgün deyil." }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: t("Sorğu düzgün deyil.") }, { status: 400 });
   const { business_id, messages: history } = parsed.data;
 
   // RLS guarantees the business and its transactions belong to the signed-in user.
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
     supabase.from("businesses").select("id, name").eq("id", business_id).maybeSingle(),
     supabase.from("transactions").select("*").eq("business_id", business_id).order("date", { ascending: true }),
   ]);
-  if (!business) return NextResponse.json({ error: "Biznes tapılmadı." }, { status: 404 });
+  if (!business) return NextResponse.json({ error: t("Biznes tapılmadı.") }, { status: 404 });
 
   const transactions = ((rows as Transaction[] | null) ?? []).map((tx) => ({ ...tx, amount: Number(tx.amount) }));
   const today = todayInBaku();
@@ -56,7 +58,7 @@ export async function POST(request: Request) {
   try {
     openai = getOpenAI();
   } catch (err) {
-    const { message, status } = toUserError(err);
+    const { message, status } = toUserError(err, t);
     return NextResponse.json({ error: message }, { status });
   }
 
@@ -68,6 +70,7 @@ export async function POST(request: Request) {
         businessName: business.name as string,
         today,
         categories: [...new Set(transactions.map((tx) => tx.category))],
+        locale: await getLocale(),
       }),
     },
     ...history.map((turn) => ({ role: turn.role, content: turn.content }) as Message),
@@ -122,7 +125,7 @@ export async function POST(request: Request) {
 
           for (const call of toolCalls) {
             send({ type: "tool", name: call.name });
-            const outcome = executeTool(call.name, call.arguments, { transactions, today });
+            const outcome = executeTool(call.name, call.arguments, { transactions, today, t });
             if (outcome.proposal) send({ type: "proposal", transaction: outcome.proposal });
             conversation.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(outcome.result) });
           }
@@ -135,8 +138,8 @@ export async function POST(request: Request) {
           type: "error",
           message:
             status === 429
-              ? "AI xidmətinin limiti dolub və ya balans bitib. Bir az sonra yenidən cəhd edin."
-              : AI_GENERIC_ERROR,
+              ? t("AI xidmətinin limiti dolub və ya balans bitib. Bir az sonra yenidən cəhd edin.")
+              : t(AI_GENERIC_ERROR),
         });
       } finally {
         controller.close();

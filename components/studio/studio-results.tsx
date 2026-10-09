@@ -22,6 +22,7 @@ import { PlanTab } from "@/components/studio/tabs/plan-tab";
 import { Button } from "@/components/ui/button";
 import { Tabs, type TabItem } from "@/components/ui/tabs";
 import type { StudioBusiness } from "@/types/studio";
+import { useT } from "@/components/i18n/locale-provider";
 
 type TabValue = "plan" | "forecast" | "locations" | "branding" | "ideas";
 export type PendingAction = "save" | "analysis" | "dashboard" | null;
@@ -61,6 +62,7 @@ export function StudioResults({
   onGenerateImages,
   onBack,
 }: StudioResultsProps) {
+  const t = useT();
   const [tab, setTab] = useState<TabValue>("plan");
   const busy = pendingAction !== null;
 
@@ -74,7 +76,7 @@ export function StudioResults({
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
-            Yeni ideya
+            {t("Yeni ideya")}
           </button>
           <h2 className="text-2xl font-semibold tracking-tight">{business.name}</h2>
           {business.branding.slogans[0] && (
@@ -85,15 +87,15 @@ export function StudioResults({
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={onSave} disabled={busy || saved}>
             {pendingAction === "save" ? <Loader2 className="animate-spin" /> : saved ? <Check /> : <Save />}
-            {saved ? "Yadda saxlanıldı" : "Yadda saxla"}
+            {saved ? t("Yadda saxlanıldı") : t("Yadda saxla")}
           </Button>
           <Button variant="outline" onClick={onSendToAnalysis} disabled={busy}>
             {pendingAction === "analysis" ? <Loader2 className="animate-spin" /> : <SearchCheck />}
-            Analizə göndər
+            {t("Analizə göndər")}
           </Button>
           <Button onClick={onAddToDashboard} disabled={busy}>
             {pendingAction === "dashboard" ? <Loader2 className="animate-spin" /> : <LayoutDashboard />}
-            Dashboard-a əlavə et
+            {t("Dashboard-a əlavə et")}
           </Button>
         </div>
       </div>
@@ -104,7 +106,7 @@ export function StudioResults({
         </p>
       )}
 
-      <Tabs items={TABS} value={tab} onChange={setTab} />
+      <Tabs items={TABS.map((item) => ({ ...item, label: t(item.label) }))} value={tab} onChange={setTab} />
 
       <div role="tabpanel">
         {tab === "plan" && <PlanTab plan={business.plan} />}

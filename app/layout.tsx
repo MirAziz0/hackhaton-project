@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { LocaleProvider } from "@/components/i18n/locale-provider";
+import { getLocale, getT } from "@/lib/i18n/server";
 import "./globals.css";
 
 // latin-ext is required for Azerbaijani letters such as "ə".
@@ -14,19 +16,25 @@ const playfair = Playfair_Display({
   subsets: ["latin", "latin-ext"],
 });
 
-export const metadata: Metadata = {
-  title: "Growenta",
-  description: "Growenta — süni intellektli biznes tərəfdaşınız: ideyadan işlək biznesə qədər",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  return {
+    title: "Growenta",
+    description: t("Growenta — süni intellektli biznes tərəfdaşınız: ideyadan işlək biznesə qədər"),
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html lang="az">
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>{children}</body>
+    <html lang={locale}>
+      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+        <LocaleProvider locale={locale}>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

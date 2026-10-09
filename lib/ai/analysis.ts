@@ -1,10 +1,12 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateJson } from "@/lib/ai/llm";
-import { ANALYSIS_SYSTEM, analysisUserPrompt } from "@/lib/ai/prompts";
+import { analysisSystem, analysisUserPrompt } from "@/lib/ai/prompts";
 import { analysisSchema } from "@/lib/ai/schemas";
 import { webSearch } from "@/lib/ai/search";
 import { trackLabel } from "@/lib/constants";
+import type { Locale } from "@/lib/i18n/config";
+import { createTranslator } from "@/lib/i18n/translate";
 import type { AnalysisPayload, SourceReference } from "@/types/analysis";
 import type { MarketData, Profile } from "@/types/database";
 
@@ -20,6 +22,8 @@ interface AnalysisInput {
   planText: string;
   // Sector of the plan being analysed; it can differ from the user's own profile track.
   sector: string | null;
+  // Language of the report.
+  locale: Locale;
 }
 
 function formatValue(row: MarketData) {
@@ -30,9 +34,10 @@ function formatValue(row: MarketData) {
 // Every source the model may cite is numbered here, and the ids it returns are checked in code,
 // so a figure can only be shown as "sourced" when it points at a row we actually provided.
 export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPayload> {
-  const { supabase, profile, businessName, planText } = input;
+  const { supabase, profile, businessName, planText, locale } = input;
+  const t = createTranslator(locale);
   const sector = input.sector && SECTORS_WITH_DATA.includes(input.sector) ? input.sector : null;
-  const sectorLabel = input.sector ? trackLabel(input.sector) : "not specified";
+  const sectorLabel = input.sector ? t(trackLabel(input.sector)) : "not specified";
 
   const [marketResult, webResults] = await Promise.all([
     sector
@@ -47,12 +52,12 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPayload
 
   const marketLines = marketRows.map((row, index) => {
     const id = `M${index + 1}`;
-    const region = REGION_LABELS[row.region] ?? row.region;
+    const region = REGION_LABELS[row.region] ? t(REGION_LABELS[row.region]) : row.region;
     marketById.set(id, row);
     references.set(id, {
       id,
       kind: "market_data",
-      name: row.source_name ?? "Bazar məlumatı",
+      name: row.source_name ?? t("Bazar məlumatı"),
       url: row.source_url,
       detail: `${row.metric} (${region}): ${formatValue(row)}`,
     });
@@ -67,8 +72,8 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPayload
 
   const output = await generateJson({
     schema: analysisSchema,
-    system: ANALYSIS_SYSTEM,
-    user: analysisUserPrompt({ profile, planText, sectorLabel, marketData: marketLines, webResults: webLines }),
+    system: analysisSystem(locale),
+    user: analysisUserPrompt({ profile, planText, sectorLabel, marketData: marketLines, webResults: webLines, locale }),
   });
 
   const validId = (id: string | null | undefined) => (id && references.has(id) ? id : null);

@@ -8,8 +8,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { todayInBaku } from "@/lib/dates";
 import { getAuth, getSessionProfile } from "@/lib/supabase/server";
 import type { FinancialForecast, Transaction } from "@/types/database";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Dashboard — Growenta" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: `${t("Dashboard")} — Growenta` };
+}
 
 interface BusinessRow {
   id: string;
@@ -23,6 +27,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ business?: string }>;
 }) {
+  const t = await getT();
   const { business: requestedId } = await searchParams;
   const { supabase, user } = await getAuth();
   if (!user) redirect("/login");
@@ -39,7 +44,7 @@ export default async function DashboardPage({
   const businesses = (businessRows as BusinessRow[] | null) ?? [];
 
   const header = (
-    <PageHeader title="Dashboard" description="Gəlir və xərclərinizi izləyin, AI köməkçidən məsləhət alın." />
+    <PageHeader title={t("Dashboard")} description={t("Gəlir və xərclərinizi izləyin, AI köməkçidən məsləhət alın.")} />
   );
 
   if (!businesses.length) {
@@ -51,12 +56,12 @@ export default async function DashboardPage({
             <span className="flex size-14 items-center justify-center rounded-full bg-secondary text-primary">
               <LayoutDashboard className="size-7" />
             </span>
-            <p className="text-lg font-medium">Hələ biznesiniz yoxdur</p>
+            <p className="text-lg font-medium">{t("Hələ biznesiniz yoxdur")}</p>
             <p className="max-w-md text-sm text-muted-foreground">
-              Əvvəlcə Studiyada biznes planı yaradın və “Dashboard-a əlavə et” düyməsini basın.
+              {t("Əvvəlcə Studiyada biznes planı yaradın və “Dashboard-a əlavə et” düyməsini basın.")}
             </p>
             <Link href="/studio" className={buttonVariants({ className: "mt-2" })}>
-              Studiyaya keç
+              {t("Studiyaya keç")}
             </Link>
           </CardContent>
         </Card>
@@ -72,7 +77,7 @@ export default async function DashboardPage({
       {/* The key resets all client state when another business is selected. */}
       <DashboardClient
         key={business.id}
-        userName={profile?.full_name?.trim().split(" ")[0] || "sahibkar"}
+        userName={profile?.full_name?.trim().split(" ")[0] || t("sahibkar")}
         businesses={businesses.map(({ id, name }) => ({ id, name }))}
         business={{ id: business.id, name: business.name, financial_forecast: business.financial_forecast }}
         initialTransactions={transactions}

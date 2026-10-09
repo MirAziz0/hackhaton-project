@@ -1,8 +1,11 @@
+"use client";
+
 /* eslint-disable @next/next/no-img-element -- logos come from Supabase Storage or data URIs */
 import { ChevronRight } from "lucide-react";
 import { formatDate } from "@/lib/dates";
 import { initials } from "@/lib/utils";
 import type { Business } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 interface SavedPlansProps {
   businesses: Business[];
@@ -10,11 +13,12 @@ interface SavedPlansProps {
 }
 
 export function SavedPlans({ businesses, onOpen }: SavedPlansProps) {
+  const t = useT();
   if (!businesses.length) return null;
 
   return (
     <section className="space-y-3">
-      <h2 className="text-lg font-semibold">Saxlanmış planlar</h2>
+      <h2 className="text-lg font-semibold">{t("Saxlanmış planlar")}</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {businesses.map((business) => {
           const logo = business.branding?.logo_urls?.[0];
@@ -35,7 +39,7 @@ export function SavedPlans({ businesses, onOpen }: SavedPlansProps) {
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{business.name}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {formatDate(business.created_at)}
+                  {formatDate(business.created_at, t)}
                 </span>
               </span>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

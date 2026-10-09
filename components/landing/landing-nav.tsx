@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
 
 const LINKS = [
   { id: "home", label: "Ana səhifə" },
@@ -13,6 +14,7 @@ const LINKS = [
 // Section menu of the landing page: clicking an item scrolls smoothly to its section, and a
 // glass highlight slides to whichever section is currently on screen.
 export function LandingNav() {
+  const t = useT();
   const [active, setActive] = useState("home");
   const [pill, setPill] = useState<{ left: number; width: number } | null>(null);
   const [animate, setAnimate] = useState(false);
@@ -28,7 +30,7 @@ export function LandingNav() {
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [active]);
+  }, [active, t]);
 
   useEffect(() => {
     if (!pill || animate) return;
@@ -65,7 +67,7 @@ export function LandingNav() {
   }
 
   return (
-    <nav aria-label="Səhifə bölmələri" className="relative hidden items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 text-sm md:flex">
+    <nav aria-label={t("Səhifə bölmələri")} className="relative hidden items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 text-sm md:flex">
       {pill && (
         <span
           aria-hidden
@@ -90,7 +92,7 @@ export function LandingNav() {
             active === id ? "text-white" : "text-white/70 hover:text-white",
           )}
         >
-          {label}
+          {t(label)}
         </a>
       ))}
     </nav>

@@ -1,4 +1,7 @@
+"use client";
+
 import type { SourceReference } from "@/types/analysis";
+import { useT } from "@/components/i18n/locale-provider";
 
 const MARKER = /(\[[MW]\d+\])/g;
 
@@ -51,17 +54,19 @@ export function SourceBadge({ reference }: { reference: SourceReference }) {
 }
 
 export function PlanBadge() {
+  const t = useT();
   return (
     <span className="inline-flex items-center rounded bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
-      plandan
+      {t("plandan")}
     </span>
   );
 }
 
 export function EstimateBadge() {
+  const t = useT();
   return (
     <span className="inline-flex items-center rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800">
-      təxmini
+      {t("təxmini")}
     </span>
   );
 }

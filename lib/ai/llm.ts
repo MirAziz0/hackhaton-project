@@ -35,7 +35,7 @@ async function complete(messages: ChatMessage[], fast: boolean) {
     console.error("[ai] OpenAI request failed:", status, detail);
     if (status === 401) throw new AiError("OPENAI_API_KEY yanlışdır və ya etibarsızdır.", 503, detail);
     if (status === 404)
-      throw new AiError(`"${model}" modeli tapılmadı. .env.local faylında LLM_MODEL dəyərini yoxlayın.`, 503, detail);
+      throw new AiError('"{model}" modeli tapılmadı. .env.local faylında LLM_MODEL dəyərini yoxlayın.', 503, detail, { model });
     if (status === 429)
       throw new AiError("AI xidmətinin limiti dolub və ya balans bitib. Bir az sonra yenidən cəhd edin.", 503, detail);
     throw new AiError(AI_GENERIC_ERROR, 502, detail);

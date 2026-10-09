@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { BAKU_CENTER } from "@/lib/places";
 import { formatAZN } from "@/lib/utils";
 import type { LocationSuggestion } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 // Numbered pin drawn with CSS, which avoids Leaflet's default marker image assets.
 function numberedIcon(index: number) {
@@ -30,6 +31,7 @@ function FitToMarkers({ locations }: { locations: LocationSuggestion[] }) {
 }
 
 export default function LocationMap({ locations }: { locations: LocationSuggestion[] }) {
+  const t = useT();
   return (
     // "isolate" keeps Leaflet's high z-indexes below the sidebar and the chat widget.
     <div className="isolate h-[420px] overflow-hidden rounded-xl border">
@@ -48,9 +50,9 @@ export default function LocationMap({ locations }: { locations: LocationSuggesti
             <Popup>
               <strong>{location.name}</strong>
               <br />
-              Təxmini icarə: {formatAZN(location.estimated_rent_azn)} / ay
+              {t("Təxmini icarə: {rent} / ay", { rent: formatAZN(location.estimated_rent_azn) })}
               <br />
-              Uyğunluq: {location.fit_score}/100
+              {t("Uyğunluq:")} {location.fit_score}/100
             </Popup>
           </Marker>
         ))}

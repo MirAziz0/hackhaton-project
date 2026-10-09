@@ -1,13 +1,17 @@
+"use client";
+
 import { Megaphone, Smartphone, Store, type LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { BusinessPlan } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 export function IdeasTab({ ideas }: { ideas: BusinessPlan["extra_ideas"] }) {
+  const t = useT();
   if (!ideas) {
     return (
       <Card>
         <CardContent className="p-10 text-center text-sm text-muted-foreground">
-          Bu plan üçün əlavə ideya yoxdur.
+          {t("Bu plan üçün əlavə ideya yoxdur.")}
         </CardContent>
       </Card>
     );
@@ -15,12 +19,12 @@ export function IdeasTab({ ideas }: { ideas: BusinessPlan["extra_ideas"] }) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <IdeaList icon={Megaphone} title="Kampaniya ideyaları" items={ideas.campaigns} />
-      <IdeaList icon={Smartphone} title="Sosial media paylaşımları" items={ideas.social_posts} />
+      <IdeaList icon={Megaphone} title={t("Kampaniya ideyaları")} items={ideas.campaigns} />
+      <IdeaList icon={Smartphone} title={t("Sosial media paylaşımları")} items={ideas.social_posts} />
       <Card className="lg:col-span-2">
         <CardHeader className="flex-row items-center gap-3">
           <IconBadge icon={Store} />
-          <CardTitle>Pop-up mağaza ideyası</CardTitle>
+          <CardTitle>{t("Pop-up mağaza ideyası")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="leading-relaxed">{ideas.popup_store}</p>

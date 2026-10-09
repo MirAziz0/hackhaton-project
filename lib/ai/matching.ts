@@ -1,18 +1,20 @@
 import "server-only";
 import { generateJson } from "@/lib/ai/llm";
-import { MATCHING_SYSTEM, matchingUserPrompt } from "@/lib/ai/prompts";
+import { matchingSystem, matchingUserPrompt } from "@/lib/ai/prompts";
 import { matchingSchema } from "@/lib/ai/schemas";
+import type { Locale } from "@/lib/i18n/config";
+import { createTranslator } from "@/lib/i18n/translate";
 import { MATCH_RESULT_LIMIT, fallbackReason, type Match, type PublicProfile } from "@/lib/network";
 
 // Matching agent: the LLM ranks the pre-filtered candidates and writes one reason for each.
 // Returned ids are checked against the candidate list, so the model cannot introduce a profile.
-export async function rankMatches(me: PublicProfile, candidates: PublicProfile[]): Promise<Match[]> {
+export async function rankMatches(me: PublicProfile, candidates: PublicProfile[], locale: Locale): Promise<Match[]> {
   if (!candidates.length) return [];
 
   const output = await generateJson({
     schema: matchingSchema,
-    system: MATCHING_SYSTEM,
-    user: matchingUserPrompt(me, candidates),
+    system: matchingSystem(locale),
+    user: matchingUserPrompt(me, candidates, locale),
     fast: true,
   });
 
@@ -29,7 +31,7 @@ export async function rankMatches(me: PublicProfile, candidates: PublicProfile[]
   for (const candidate of candidates) {
     if (matches.length >= MATCH_RESULT_LIMIT) break;
     if (!matches.some((match) => match.profile.id === candidate.id)) {
-      matches.push({ profile: candidate, reason: fallbackReason(me, candidate), ai: false });
+      matches.push({ profile: candidate, reason: fallbackReason(me, candidate, createTranslator(locale)), ai: false });
     }
   }
   return matches;

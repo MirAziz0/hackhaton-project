@@ -9,6 +9,8 @@ import { trackLabel } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/client";
 import { cn, initials } from "@/lib/utils";
 import type { Message } from "@/types/database";
+import { useLocale, useT } from "@/components/i18n/locale-provider";
+import type { Locale } from "@/lib/i18n/config";
 
 interface Contact {
   id: string;
@@ -17,13 +19,14 @@ interface Contact {
 }
 
 const MESSAGE_LIMIT = 300;
+const DATE_LOCALES: Record<Locale, string> = { az: "az-AZ", en: "en-GB" };
 
-function timeLabel(iso: string) {
+function timeLabel(iso: string, locale: Locale) {
   const date = new Date(iso);
   const sameDay = date.toDateString() === new Date().toDateString();
   return sameDay
-    ? date.toLocaleTimeString("az-AZ", { hour: "2-digit", minute: "2-digit" })
-    : date.toLocaleDateString("az-AZ", { day: "numeric", month: "short" });
+    ? date.toLocaleTimeString(DATE_LOCALES[locale], { hour: "2-digit", minute: "2-digit" })
+    : date.toLocaleDateString(DATE_LOCALES[locale], { day: "numeric", month: "short" });
 }
 
 function Avatar({ name, className }: { name: string | null; className?: string }) {
@@ -41,6 +44,8 @@ function Avatar({ name, className }: { name: string | null; className?: string }
 
 // Floating user-to-user chat: conversation list, unread badge, thread and realtime updates.
 export function ChatWidget() {
+  const t = useT();
+  const locale = useLocale();
   const { currentUserId, open, setOpen, activeUserId, setActiveUserId } = useChat();
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -186,20 +191,20 @@ export function ChatWidget() {
           <div className="bg-brand flex items-center gap-2 px-4 py-3 text-white">
             {activeUserId ? (
               <>
-                <button type="button" onClick={() => setActiveUserId(null)} aria-label="Söhbətlərə qayıt">
+                <button type="button" onClick={() => setActiveUserId(null)} aria-label={t("Söhbətlərə qayıt")}>
                   <ArrowLeft className="size-4" />
                 </button>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{activeContact?.full_name || "Sahibkar"}</p>
+                  <p className="truncate text-sm font-semibold">{activeContact?.full_name || t("Sahibkar")}</p>
                   {activeContact?.track && (
-                    <p className="truncate text-xs text-white/80">{trackLabel(activeContact.track)}</p>
+                    <p className="truncate text-xs text-white/80">{t(trackLabel(activeContact.track))}</p>
                   )}
                 </div>
               </>
             ) : (
-              <span className="flex-1 text-sm font-semibold">Mesajlar</span>
+              <span className="flex-1 text-sm font-semibold">{t("Mesajlar")}</span>
             )}
-            <button type="button" onClick={() => setOpen(false)} aria-label="Bağla">
+            <button type="button" onClick={() => setOpen(false)} aria-label={t("Bağla")}>
               <X className="size-4" />
             </button>
           </div>
@@ -209,7 +214,7 @@ export function ChatWidget() {
               <div ref={scroller} className="flex-1 space-y-2 overflow-y-auto p-3" aria-live="polite">
                 {thread.length === 0 && (
                   <p className="pt-10 text-center text-sm text-muted-foreground">
-                    Söhbətə başlamaq üçün ilk mesajınızı yazın.
+                    {t("Söhbətə başlamaq üçün ilk mesajınızı yazın.")}
                   </p>
                 )}
                 {thread.map((message) => {
@@ -224,7 +229,7 @@ export function ChatWidget() {
                       >
                         <p className="whitespace-pre-wrap break-words">{message.content}</p>
                         <p className={cn("mt-1 text-right text-[10px]", mine ? "text-white/70" : "text-muted-foreground")}>
-                          {timeLabel(message.created_at)}
+                          {timeLabel(message.created_at, locale)}
                         </p>
                       </div>
                     </div>
@@ -233,7 +238,7 @@ export function ChatWidget() {
               </div>
               {sendError && (
                 <p role="alert" className="px-3 pb-1 text-xs text-red-700">
-                  Mesaj göndərilmədi. Yenidən cəhd edin.
+                  {t("Mesaj göndərilmədi. Yenidən cəhd edin.")}
                 </p>
               )}
               <form onSubmit={send} className="flex gap-2 border-t p-3">
@@ -241,11 +246,11 @@ export function ChatWidget() {
                   autoFocus
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Mesaj yazın..."
+                  placeholder={t("Mesaj yazın...")}
                   maxLength={2000}
-                  aria-label="Mesaj"
+                  aria-label={t("Mesaj")}
                 />
-                <Button type="submit" size="icon" className="shrink-0" disabled={sending || !draft.trim()} aria-label="Göndər">
+                <Button type="submit" size="icon" className="shrink-0" disabled={sending || !draft.trim()} aria-label={t("Göndər")}>
                   {sending ? <Loader2 className="animate-spin" /> : <ArrowUp />}
                 </Button>
               </form>
@@ -257,9 +262,9 @@ export function ChatWidget() {
           ) : conversations.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
               <MessageCircle className="size-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Hələ mesaj yoxdur</p>
+              <p className="text-sm font-medium">{t("Hələ mesaj yoxdur")}</p>
               <p className="text-xs text-muted-foreground">
-                Şəbəkə bölməsində sahibkarın kartındakı “Əlaqə saxla” düyməsini basın.
+                {t("Şəbəkə bölməsində sahibkarın kartındakı “Əlaqə saxla” düyməsini basın.")}
               </p>
             </div>
           ) : (
@@ -275,13 +280,13 @@ export function ChatWidget() {
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline justify-between gap-2">
                         <span className={cn("truncate text-sm", unread ? "font-semibold" : "font-medium")}>
-                          {contacts[userId]?.full_name || "Sahibkar"}
+                          {contacts[userId]?.full_name || t("Sahibkar")}
                         </span>
-                        <span className="shrink-0 text-[11px] text-muted-foreground">{timeLabel(last.created_at)}</span>
+                        <span className="shrink-0 text-[11px] text-muted-foreground">{timeLabel(last.created_at, locale)}</span>
                       </span>
                       <span className="flex items-center justify-between gap-2">
                         <span className={cn("truncate text-xs", unread ? "text-foreground" : "text-muted-foreground")}>
-                          {last.sender_id === currentUserId ? "Siz: " : ""}
+                          {last.sender_id === currentUserId ? `${t("Siz")}: ` : ""}
                           {last.content}
                         </span>
                         {unread > 0 && (
@@ -302,7 +307,7 @@ export function ChatWidget() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={unreadTotal ? `Mesajlar, ${unreadTotal} oxunmamış` : "Mesajlar"}
+        aria-label={unreadTotal ? t("Mesajlar, {count} oxunmamış", { count: unreadTotal }) : t("Mesajlar")}
         className="relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         {open ? <X className="size-6" /> : <MessageCircle className="size-6" />}

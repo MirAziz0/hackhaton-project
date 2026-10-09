@@ -5,6 +5,7 @@ import { ArrowUp, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/components/i18n/locale-provider";
 
 export interface ClarifyAnswer {
   question: string;
@@ -19,6 +20,7 @@ interface ClarifyChatProps {
 
 // Chat-like UI: the agent asks one clarifying question at a time.
 export function ClarifyChat({ idea, questions, onComplete }: ClarifyChatProps) {
+  const t = useT();
   const [answers, setAnswers] = useState<ClarifyAnswer[]>([]);
   const [draft, setDraft] = useState("");
 
@@ -39,13 +41,13 @@ export function ClarifyChat({ idea, questions, onComplete }: ClarifyChatProps) {
       <CardContent className="space-y-5 p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-lg font-semibold">Bir neçə dəqiqləşdirici sual</p>
+            <p className="text-lg font-semibold">{t("Bir neçə dəqiqləşdirici sual")}</p>
             <p className="text-sm text-muted-foreground">
-              Sual {Math.min(answers.length + 1, questions.length)} / {questions.length}
+              {t("Sual {step} / {total}", { step: Math.min(answers.length + 1, questions.length), total: questions.length })}
             </p>
           </div>
           <Button variant="ghost" size="sm" onClick={() => onComplete(answers)}>
-            Sualları keç
+            {t("Sualları keç")}
           </Button>
         </div>
 
@@ -66,11 +68,11 @@ export function ClarifyChat({ idea, questions, onComplete }: ClarifyChatProps) {
               autoFocus
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Cavabınızı yazın..."
+              placeholder={t("Cavabınızı yazın...")}
               maxLength={2000}
               className="h-11"
             />
-            <Button type="submit" size="icon" className="size-11 shrink-0" disabled={!draft.trim()} aria-label="Göndər">
+            <Button type="submit" size="icon" className="size-11 shrink-0" disabled={!draft.trim()} aria-label={t("Göndər")}>
               <ArrowUp />
             </Button>
           </form>

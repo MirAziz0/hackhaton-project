@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useT } from "@/components/i18n/locale-provider";
 
 // Error boundary for every page inside the app shell: the sidebar stays usable.
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  const t = useT();
   useEffect(() => {
     console.error(error);
   }, [error]);
@@ -17,12 +19,12 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
         <span className="flex size-14 items-center justify-center rounded-full bg-red-50 text-red-700">
           <TriangleAlert className="size-7" />
         </span>
-        <p className="text-lg font-medium">Səhifəni yükləmək mümkün olmadı</p>
+        <p className="text-lg font-medium">{t("Səhifəni yükləmək mümkün olmadı")}</p>
         <p className="max-w-md text-sm text-muted-foreground">
-          Gözlənilməz xəta baş verdi. Yenidən cəhd edin; problem davam edərsə, səhifəni yeniləyin.
+          {t("Gözlənilməz xəta baş verdi. Yenidən cəhd edin; problem davam edərsə, səhifəni yeniləyin.")}
         </p>
         <Button className="mt-2" onClick={reset}>
-          Yenidən cəhd et
+          {t("Yenidən cəhd et")}
         </Button>
       </CardContent>
     </Card>

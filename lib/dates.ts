@@ -1,5 +1,8 @@
+import { sourceText, type Translate } from "@/lib/i18n/translate";
+
 // Date helpers. Dates are handled as "YYYY-MM-DD" strings and months as "YYYY-MM" keys,
 // which avoids timezone surprises when comparing transaction dates.
+// Month names are Azerbaijani; pass a translator to get them in the visitor's language.
 
 const MONTHS = [
   "Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun",
@@ -33,17 +36,18 @@ export function lastDayOfMonth(key: string) {
   return `${key}-${String(new Date(Date.UTC(year, month, 0)).getUTCDate()).padStart(2, "0")}`;
 }
 
-export function monthLabel(key: string) {
+export function monthLabel(key: string, t: Translate = sourceText) {
   const [year, month] = key.split("-").map(Number);
-  return `${MONTHS[month - 1]} ${year}`;
+  return `${t(MONTHS[month - 1])} ${year}`;
 }
 
-export function monthShortLabel(key: string) {
-  return MONTHS_SHORT[Number(key.split("-")[1]) - 1];
+export function monthShortLabel(key: string, t: Translate = sourceText) {
+  return t(MONTHS_SHORT[Number(key.split("-")[1]) - 1]);
 }
 
 // Accepts "YYYY-MM-DD" or a full ISO timestamp. Deterministic on server and client alike.
-export function formatDate(date: string) {
+export function formatDate(date: string, t: Translate = sourceText) {
   const [year, month, day] = date.slice(0, 10).split("-").map(Number);
-  return `${day} ${MONTHS[month - 1].toLowerCase()} ${year}`;
+  const name = t(MONTHS[month - 1]);
+  return t("{day} {monthLower} {year}", { day, month: name, monthLower: name.toLowerCase(), year });
 }

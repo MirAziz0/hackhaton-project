@@ -1,3 +1,7 @@
+"use client";
+
+import { useT } from "@/components/i18n/locale-provider";
+
 const RADIUS = 80;
 const STROKE = 16;
 const ARC_LENGTH = Math.PI * RADIUS;
@@ -10,8 +14,10 @@ function band(score: number) {
 
 // Half-circle gauge for the 0-100 investment readiness score.
 export function ScoreGauge({ score }: { score: number }) {
+  const t = useT();
   const clamped = Math.min(100, Math.max(0, score));
-  const { color, label } = band(clamped);
+  const { color, label: bandLabel } = band(clamped);
+  const label = t(bandLabel);
   const arc = `M ${100 - RADIUS} 100 A ${RADIUS} ${RADIUS} 0 0 1 ${100 + RADIUS} 100`;
 
   return (
@@ -20,7 +26,7 @@ export function ScoreGauge({ score }: { score: number }) {
         viewBox="0 0 200 116"
         className="w-full max-w-64"
         role="img"
-        aria-label={`İnvestisiyaya hazırlıq balı: 100-dən ${clamped}. ${label}.`}
+        aria-label={t("İnvestisiyaya hazırlıq balı: 100-dən {score}. {label}.", { score: clamped, label })}
       >
         <path d={arc} fill="none" stroke="var(--muted)" strokeWidth={STROKE} strokeLinecap="round" />
         <path

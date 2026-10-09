@@ -3,10 +3,15 @@ import { PageHeader } from "@/components/layout/page-header";
 import { NetworkClient } from "@/components/network/network-client";
 import { PUBLIC_PROFILE_COLUMNS, type PublicProfile } from "@/lib/network";
 import { getAuth } from "@/lib/supabase/server";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Şəbəkə — Growenta" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: `${t("Şəbəkə")} — Growenta` };
+}
 
 export default async function NetworkPage() {
+  const t = await getT();
   const { supabase, user } = await getAuth();
   if (!user) redirect("/login");
 
@@ -24,7 +29,7 @@ export default async function NetworkPage() {
 
   return (
     <>
-      <PageHeader title="Şəbəkə" description="Sizə uyğun sahibkarları tapın və əlaqə qurun." />
+      <PageHeader title={t("Şəbəkə")} description={t("Sizə uyğun sahibkarları tapın və əlaqə qurun.")} />
       <NetworkClient me={me} directory={everyone.filter((profile) => profile.id !== user.id)} />
     </>
   );

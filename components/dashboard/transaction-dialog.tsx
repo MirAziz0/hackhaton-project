@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { Transaction, TransactionType } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 export interface TransactionInput {
   type: TransactionType;
@@ -32,6 +33,7 @@ const TYPES: { value: TransactionType; label: string }[] = [
 ];
 
 export function TransactionDialog({ transaction, today, categories, onClose, onSubmit }: TransactionDialogProps) {
+  const t = useT();
   const [type, setType] = useState<TransactionType>(transaction?.type ?? "income");
   // "Gəlir" and "Xərc" each keep their own amount and category, so switching between the two
   // never carries one side's values over to the other.
@@ -68,13 +70,13 @@ export function TransactionDialog({ transaction, today, categories, onClose, onS
       });
       onClose();
     } catch {
-      setError("Əməliyyatı yadda saxlamaq mümkün olmadı. Yenidən cəhd edin.");
+      setError(t("Əməliyyatı yadda saxlamaq mümkün olmadı. Yenidən cəhd edin."));
       setSaving(false);
     }
   }
 
   return (
-    <Dialog open title={transaction ? "Əməliyyatı redaktə et" : "Yeni əməliyyat"} onClose={onClose}>
+    <Dialog open title={transaction ? t("Əməliyyatı redaktə et") : t("Yeni əməliyyat")} onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1">
           {TYPES.map((item) => (
@@ -88,14 +90,14 @@ export function TransactionDialog({ transaction, today, categories, onClose, onS
                 type === item.value ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {item.label}
+              {t(item.label)}
             </button>
           ))}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="tx-amount">{type === "income" ? "Gəlir məbləği (₼)" : "Xərc məbləği (₼)"}</Label>
+            <Label htmlFor="tx-amount">{type === "income" ? t("Gəlir məbləği (₼)") : t("Xərc məbləği (₼)")}</Label>
             <Input
               id="tx-amount"
               inputMode="decimal"
@@ -107,19 +109,19 @@ export function TransactionDialog({ transaction, today, categories, onClose, onS
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="tx-date">Tarix</Label>
+            <Label htmlFor="tx-date">{t("Tarix")}</Label>
             <Input id="tx-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="tx-category">Kateqoriya</Label>
+          <Label htmlFor="tx-category">{t("Kateqoriya")}</Label>
           <Input
             id="tx-category"
             list="tx-categories"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder={type === "income" ? "Mağaza satışı" : "İcarə"}
+            placeholder={type === "income" ? t("Mağaza satışı") : t("İcarə")}
             maxLength={60}
             required
           />
@@ -131,7 +133,7 @@ export function TransactionDialog({ transaction, today, categories, onClose, onS
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="tx-note">Qeyd (istəyə görə)</Label>
+          <Label htmlFor="tx-note">{t("Qeyd (istəyə görə)")}</Label>
           <Input id="tx-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} />
         </div>
 
@@ -143,11 +145,11 @@ export function TransactionDialog({ transaction, today, categories, onClose, onS
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="ghost" onClick={onClose} disabled={saving}>
-            Ləğv et
+            {t("Ləğv et")}
           </Button>
           <Button type="submit" disabled={!valid || saving}>
             {saving && <Loader2 className="animate-spin" />}
-            Yadda saxla
+            {t("Yadda saxla")}
           </Button>
         </div>
       </form>

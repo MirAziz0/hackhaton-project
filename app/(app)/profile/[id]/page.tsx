@@ -10,8 +10,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuth } from "@/lib/supabase/server";
 import { initials } from "@/lib/utils";
 import type { Branding, Profile } from "@/types/database";
+import { getT } from "@/lib/i18n/server";
 
-export const metadata = { title: "Profil — Growenta" };
+export async function generateMetadata() {
+  const t = await getT();
+  return { title: `${t("Profil")} — Growenta` };
+}
 
 interface BusinessCard {
   id: string;
@@ -42,6 +46,7 @@ async function loadBusinessCards(ownerId: string): Promise<BusinessCard[]> {
 }
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getT();
   const { id } = await params;
   const { supabase, user } = await getAuth();
   const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
@@ -53,7 +58,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <PageHeader title={isOwn ? "Profilim" : "Profil"} />
+      <PageHeader title={isOwn ? t("Profilim") : t("Profil")} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
@@ -66,15 +71,15 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
               </div>
             )}
             <div className="space-y-1">
-              <h2 className="text-xl font-semibold">{profile.full_name || "İstifadəçi"}</h2>
+              <h2 className="text-xl font-semibold">{profile.full_name || t("İstifadəçi")}</h2>
               <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
                 <MapPin className="size-4" />
-                {profile.city || "—"}
+                {profile.city ? t(profile.city) : "—"}
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
-              <Badge>{trackLabel(profile.track)}</Badge>
-              <Badge variant="outline">{stageLabel(profile.stage)}</Badge>
+              <Badge>{t(trackLabel(profile.track))}</Badge>
+              <Badge variant="outline">{t(stageLabel(profile.stage))}</Badge>
             </div>
             {!isOwn && <ContactButton userId={profile.id} className="mt-2 w-full" />}
           </CardContent>
@@ -83,34 +88,34 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
         <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Haqqında</CardTitle>
+              <CardTitle>{t("Haqqında")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <p className="text-sm leading-relaxed">{profile.bio || "Hələ məlumat əlavə edilməyib."}</p>
+              <p className="text-sm leading-relaxed">{profile.bio || t("Hələ məlumat əlavə edilməyib.")}</p>
               <div className="grid gap-4 sm:grid-cols-2">
-                <InfoRow icon={Package} label="Məhsul və xidmətlər" value={profile.products} />
-                <InfoRow icon={Target} label="Hədəf müştəri" value={profile.target_customer} />
-                {isOwn && <InfoRow icon={Wallet} label="Büdcə (yalnız siz görürsünüz)" value={budgetLabel(profile.budget_range)} />}
+                <InfoRow icon={Package} label={t("Məhsul və xidmətlər")} value={profile.products} />
+                <InfoRow icon={Target} label={t("Hədəf müştəri")} value={profile.target_customer} />
+                {isOwn && <InfoRow icon={Wallet} label={t("Büdcə (yalnız siz görürsünüz)")} value={t(budgetLabel(profile.budget_range))} />}
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Nə axtarır</CardTitle>
+              <CardTitle>{t("Nə axtarır")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               {profile.looking_for?.length ? (
-                profile.looking_for.map((item) => <Badge key={item}>{lookingForLabel(item)}</Badge>)
+                profile.looking_for.map((item) => <Badge key={item}>{t(lookingForLabel(item))}</Badge>)
               ) : (
-                <p className="text-sm text-muted-foreground">Göstərilməyib.</p>
+                <p className="text-sm text-muted-foreground">{t("Göstərilməyib.")}</p>
               )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Biznesləri</CardTitle>
+              <CardTitle>{t("Biznesləri")}</CardTitle>
             </CardHeader>
             <CardContent>
               {businesses.length ? (
@@ -130,7 +135,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 </ul>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  {isOwn ? "Hələ biznes əlavə etməmisiniz. Studiyada plan yaradıb yadda saxlayın." : "Hələ biznes əlavə edilməyib."}
+                  {isOwn ? t("Hələ biznes əlavə etməmisiniz. Studiyada plan yaradıb yadda saxlayın.") : t("Hələ biznes əlavə edilməyib.")}
                 </p>
               )}
             </CardContent>

@@ -1,4 +1,5 @@
 import { lookingForLabel, trackLabel } from "@/lib/constants";
+import { sourceText, type Translate } from "@/lib/i18n/translate";
 import type { LookingFor, Stage, Track } from "@/types/database";
 
 // Profile fields that other signed-in users may see (budget is deliberately left out).
@@ -59,19 +60,25 @@ export function matchCandidates(me: PublicProfile, others: PublicProfile[]) {
 
 // One-sentence reason built only from profile facts. Shown while the AI ranking is still
 // loading and whenever it is unavailable.
-export function fallbackReason(me: PublicProfile, candidate: PublicProfile) {
-  const looking = candidate.looking_for?.length
-    ? `${candidate.looking_for.map(lookingForLabel).join(", ").toLowerCase()} axtarır`
-    : null;
-  const intro =
-    candidate.track === me.track
-      ? `Siz də ${trackLabel(candidate.track).toLowerCase()} sahəsində fəaliyyət göstərirsiniz`
-      : `${trackLabel(candidate.track)} sahəsində fəaliyyət göstərir`;
-  return looking ? `${intro}, o isə ${looking}.` : `${intro}.`;
+export function fallbackReason(me: PublicProfile, candidate: PublicProfile, t: Translate = sourceText) {
+  const track = t(trackLabel(candidate.track));
+  const values = {
+    track,
+    trackLower: track.toLowerCase(),
+    looking: candidate.looking_for?.map((item) => t(lookingForLabel(item))).join(", ").toLowerCase() ?? "",
+  };
+  if (candidate.track === me.track) {
+    return values.looking
+      ? t("Siz də {trackLower} sahəsində fəaliyyət göstərirsiniz, o isə {looking} axtarır.", values)
+      : t("Siz də {trackLower} sahəsində fəaliyyət göstərirsiniz.", values);
+  }
+  return values.looking
+    ? t("{track} sahəsində fəaliyyət göstərir, o isə {looking} axtarır.", values)
+    : t("{track} sahəsində fəaliyyət göstərir.", values);
 }
 
-export function fallbackMatches(me: PublicProfile, candidates: PublicProfile[]): Match[] {
+export function fallbackMatches(me: PublicProfile, candidates: PublicProfile[], t: Translate = sourceText): Match[] {
   return candidates
     .slice(0, MATCH_RESULT_LIMIT)
-    .map((profile) => ({ profile, reason: fallbackReason(me, profile), ai: false }));
+    .map((profile) => ({ profile, reason: fallbackReason(me, profile, t), ai: false }));
 }

@@ -15,6 +15,8 @@ import {
 import { CATEGORY_COLORS, CHART_COLORS } from "@/lib/chart-colors";
 import type { MonthPoint } from "@/lib/finance/dashboard";
 import { formatAZN } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
+import type { Translate } from "@/lib/i18n/translate";
 
 const LABELS: Record<string, string> = {
   income: "Gəlir",
@@ -41,19 +43,30 @@ function seriesOrder(item: { dataKey?: unknown }) {
   return SERIES_ORDER.indexOf(String(item.dataKey));
 }
 
-function legendLabel(value: unknown) {
-  return <span className="text-sm text-foreground">{LABELS[String(value)] ?? String(value)}</span>;
+function legendLabel(t: Translate) {
+  return function LegendLabel(value: unknown) {
+    return <span className="text-sm text-foreground">{t(LABELS[String(value)] ?? String(value))}</span>;
+  };
 }
 
-function tooltipValue(value: unknown, name: unknown): [string, string] {
-  return [formatAZN(Number(value)), LABELS[String(name)] ?? String(name)];
+function tooltipValue(t: Translate) {
+  return (value: unknown, name: unknown): [string, string] => [
+    formatAZN(Number(value)),
+    t(LABELS[String(name)] ?? String(name)),
+  ];
 }
 
-export function EmptyChart({ text = "Göstərmək üçün məlumat yoxdur." }: { text?: string }) {
-  return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">{text}</div>;
+export function EmptyChart({ text }: { text?: string }) {
+  const t = useT();
+  return (
+    <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+      {text ?? t("Göstərmək üçün məlumat yoxdur.")}
+    </div>
+  );
 }
 
 export function MonthlyBarChart({ data }: { data: MonthPoint[] }) {
+  const t = useT();
   if (!data.some((point) => point.income || point.expenses)) return <EmptyChart />;
 
   return (
@@ -63,8 +76,8 @@ export function MonthlyBarChart({ data }: { data: MonthPoint[] }) {
           <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
           <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
           <YAxis tickFormatter={compact} tick={axisTick} tickLine={false} axisLine={false} width={44} />
-          <Tooltip formatter={tooltipValue} contentStyle={tooltipStyle} cursor={{ fill: "#f4f3f9" }} />
-          <Legend verticalAlign="top" align="left" height={36} formatter={legendLabel} iconType="circle" iconSize={8} itemSorter={seriesOrder} />
+          <Tooltip formatter={tooltipValue(t)} contentStyle={tooltipStyle} cursor={{ fill: "#f4f3f9" }} />
+          <Legend verticalAlign="top" align="left" height={36} formatter={legendLabel(t)} iconType="circle" iconSize={8} itemSorter={seriesOrder} />
           <Bar dataKey="income" fill={CHART_COLORS.revenue} radius={[8, 8, 3, 3]} maxBarSize={30} />
           <Bar dataKey="expenses" fill={CHART_COLORS.costs} radius={[8, 8, 3, 3]} maxBarSize={30} />
         </BarChart>
@@ -84,6 +97,7 @@ export interface CategorySlice {
 export function toCategorySlices(
   categories: { category: string; amount: number; share_pct: number }[],
   colorOf: (category: string) => string | undefined,
+  t: Translate,
 ): CategorySlice[] {
   const slices: CategorySlice[] = [];
   let otherAmount = 0;
@@ -97,7 +111,7 @@ export function toCategorySlices(
     }
   }
   if (otherAmount > 0) {
-    slices.push({ category: "Digər", amount: otherAmount, share_pct: Math.round(otherShare * 10) / 10, color: CHART_COLORS.other });
+    slices.push({ category: t("Digər"), amount: otherAmount, share_pct: Math.round(otherShare * 10) / 10, color: CHART_COLORS.other });
   }
   return slices;
 }
@@ -113,7 +127,8 @@ export function categoryColorMap(allCategories: string[]) {
 
 // Expense breakdown as labelled share bars: each category shows its name, amount and share.
 export function ExpenseBars({ slices }: { slices: CategorySlice[] }) {
-  if (!slices.length) return <EmptyChart text="Bu ay hələ xərc yoxdur." />;
+  const t = useT();
+  if (!slices.length) return <EmptyChart text={t("Bu ay hələ xərc yoxdur.")} />;
 
   return (
     <ul className="space-y-5">
@@ -147,7 +162,8 @@ export interface ForecastPoint {
 }
 
 export function ForecastLineChart({ data }: { data: ForecastPoint[] }) {
-  if (!data.length) return <EmptyChart text="Bu biznes üçün plan proqnozu yoxdur." />;
+  const t = useT();
+  if (!data.length) return <EmptyChart text={t("Bu biznes üçün plan proqnozu yoxdur.")} />;
 
   return (
     <div className="h-64 w-full">
@@ -156,8 +172,8 @@ export function ForecastLineChart({ data }: { data: ForecastPoint[] }) {
           <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
           <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
           <YAxis tickFormatter={compact} tick={axisTick} tickLine={false} axisLine={false} width={44} />
-          <Tooltip formatter={tooltipValue} contentStyle={tooltipStyle} />
-          <Legend verticalAlign="top" align="left" height={36} formatter={legendLabel} iconType="plainline" itemSorter={seriesOrder} />
+          <Tooltip formatter={tooltipValue(t)} contentStyle={tooltipStyle} />
+          <Legend verticalAlign="top" align="left" height={36} formatter={legendLabel(t)} iconType="plainline" itemSorter={seriesOrder} />
           <Line
             type="monotone"
             dataKey="forecast"

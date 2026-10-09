@@ -9,6 +9,7 @@ import { SavedPlans } from "@/components/studio/saved-plans";
 import { StudioResults, type PendingAction } from "@/components/studio/studio-results";
 import type { ImageStatus } from "@/components/studio/tabs/branding-tab";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/components/i18n/locale-provider";
 import type { Business } from "@/types/database";
 import type { BrandingImages, StudioBusiness } from "@/types/studio";
 
@@ -55,6 +56,7 @@ interface StudioWorkspaceProps {
 }
 
 export function StudioWorkspace({ userId, savedBusinesses }: StudioWorkspaceProps) {
+  const t = useT();
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("idea");
   const [idea, setIdea] = useState("");
@@ -103,7 +105,7 @@ export function StudioWorkspace({ userId, savedBusinesses }: StudioWorkspaceProp
         await generate(text, []);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : GENERIC_ERROR);
+      setError(t(err instanceof Error ? err.message : GENERIC_ERROR));
       setPhase("idea");
     }
   }
@@ -121,7 +123,7 @@ export function StudioWorkspace({ userId, savedBusinesses }: StudioWorkspaceProp
       // Images start right away in the background, so the user reads the plan while they render.
       void generateImages(generated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : GENERIC_ERROR);
+      setError(t(err instanceof Error ? err.message : GENERIC_ERROR));
       setPhase("idea");
     }
   }
@@ -142,7 +144,7 @@ export function StudioWorkspace({ userId, savedBusinesses }: StudioWorkspaceProp
       const branding = { ...target.branding, logo_urls: images.logo_urls, banner_url: images.banner_url };
       setBusiness((current) => (current ? { ...current, branding } : current));
       setImageStatus("done");
-      setImageNotice(images.placeholder ? PLACEHOLDER_NOTICE : null);
+      setImageNotice(images.placeholder ? t(PLACEHOLDER_NOTICE) : null);
 
       // Keep an already saved plan in sync with its new images.
       if (savedIdRef.current) {
@@ -156,7 +158,7 @@ export function StudioWorkspace({ userId, savedBusinesses }: StudioWorkspaceProp
     } catch (err) {
       if (session !== sessionRef.current) return;
       setImageStatus("error");
-      setImageNotice(err instanceof Error ? err.message : GENERIC_ERROR);
+      setImageNotice(t(err instanceof Error ? err.message : GENERIC_ERROR));
     }
   }
 
@@ -201,7 +203,7 @@ export function StudioWorkspace({ userId, savedBusinesses }: StudioWorkspaceProp
       else if (action === "dashboard") router.push(`/dashboard?business=${id}`);
       else router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : SAVE_ERROR);
+      setError(t(err instanceof Error ? err.message : SAVE_ERROR));
     } finally {
       setPendingAction(null);
     }

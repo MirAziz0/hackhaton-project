@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AlertTriangle,
   ArrowDown,
@@ -17,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { Analysis, BudgetStatus, Priority, SourceReference } from "@/types/analysis";
+import { useT } from "@/components/i18n/locale-provider";
 
 const FIT_REGIONS = [
   { key: "baku", label: "Bakı" },
@@ -32,7 +35,7 @@ const SWOT_CARDS: {
 }[] = [
   { key: "strengths", label: "Güclü tərəflər", icon: ThumbsUp, className: "border-emerald-200 bg-emerald-50 text-emerald-900" },
   { key: "weaknesses", label: "Zəif tərəflər", icon: AlertTriangle, className: "border-red-200 bg-red-50 text-red-900" },
-  { key: "opportunities", label: "İmkanlar", icon: TrendingUp, className: "border-sky-200 bg-sky-50 text-sky-900" },
+  { key: "opportunities", label: "İmkanlar##swot", icon: TrendingUp, className: "border-sky-200 bg-sky-50 text-sky-900" },
   { key: "threats", label: "Təhlükələr", icon: ShieldAlert, className: "border-amber-200 bg-amber-50 text-amber-900" },
 ];
 
@@ -50,6 +53,7 @@ const PRIORITY: Record<Priority, { label: string; variant: "destructive" | "warn
 const PRIORITY_ORDER: Priority[] = ["high", "medium", "low"];
 
 export function AnalysisResults({ analysis }: { analysis: Analysis }) {
+  const t = useT();
   const { market_fit: fit, sources } = analysis;
   const references = sources.references ?? [];
   const findReference = (id: string | null) => references.find((item) => item.id === id);
@@ -62,7 +66,7 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>İnvestisiyaya hazırlıq</CardTitle>
+            <CardTitle>{t("İnvestisiyaya hazırlıq")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ScoreGauge score={analysis.overall_score} />
@@ -71,7 +75,7 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Ümumi qiymətləndirmə</CardTitle>
+            <CardTitle>{t("Ümumi qiymətləndirmə")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <p className="leading-relaxed">
@@ -101,12 +105,12 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
         </Card>
       </div>
 
-      <section className="grid gap-6 lg:grid-cols-3" aria-label="Bazara uyğunluq">
+      <section className="grid gap-6 lg:grid-cols-3" aria-label={t("Bazara uyğunluq")}>
         {FIT_REGIONS.map(({ key, label }) => (
           <Card key={key}>
             <CardContent className="space-y-3 p-5">
               <div className="flex items-baseline justify-between">
-                <p className="font-semibold">{label}</p>
+                <p className="font-semibold">{t(label)}</p>
                 <p className="text-2xl font-semibold tabular-nums">
                   {fit[key].score}
                   <span className="text-sm font-normal text-muted-foreground"> / 100</span>
@@ -121,12 +125,12 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
         ))}
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2" aria-label="SWOT təhlili">
+      <section className="grid gap-4 sm:grid-cols-2" aria-label={t("SWOT təhlili")}>
         {SWOT_CARDS.map(({ key, label, icon: Icon, className }) => (
           <div key={key} className={cn("rounded-xl border p-5", className)}>
             <p className="flex items-center gap-2 font-semibold">
               <Icon className="size-4" />
-              {label}
+              {t(label)}
             </p>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm">
               {analysis.swot[key].map((item) => (
@@ -142,7 +146,7 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Məkan təhlili</CardTitle>
+            <CardTitle>{t("Məkan təhlili")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm leading-relaxed">
@@ -151,7 +155,7 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
             {fit.location_analysis.alternatives.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Alternativ məkanlar
+                  {t("Alternativ məkanlar")}
                 </p>
                 {fit.location_analysis.alternatives.map((alternative) => (
                   <div key={alternative.name} className="flex gap-3 rounded-lg border bg-muted/40 p-3">
@@ -171,8 +175,8 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Büdcə yoxlaması</CardTitle>
-            <CardDescription>Hansı xərc kateqoriyaları çox aşağı və ya çox yüksək görünür.</CardDescription>
+            <CardTitle>{t("Büdcə yoxlaması")}</CardTitle>
+            <CardDescription>{t("Hansı xərc kateqoriyaları çox aşağı və ya çox yüksək görünür.")}</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="divide-y">
@@ -184,7 +188,7 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
                       <p className="text-sm font-medium">{item.category}</p>
                       <Badge variant={status.variant} className="shrink-0 gap-1">
                         <status.icon className="size-3" />
-                        {status.label}
+                        {t(status.label)}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -200,10 +204,10 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Rəqiblər və fərqlənmə</CardTitle>
+          <CardTitle>{t("Rəqiblər və fərqlənmə")}</CardTitle>
           {!sources.web_search_used && (
             <CardDescription>
-              Veb axtarış qoşulmayıb, ona görə konkret şirkət adları əvəzinə rəqib tipləri göstərilir.
+              {t("Veb axtarış qoşulmayıb, ona görə konkret şirkət adları əvəzinə rəqib tipləri göstərilir.")}
             </CardDescription>
           )}
         </CardHeader>
@@ -222,7 +226,7 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
                       <CitedText text={competitor.description} references={references} />
                     </p>
                     <p className="text-sm">
-                      <span className="font-medium">Necə fərqlənməli: </span>
+                      <span className="font-medium">{t("Necə fərqlənməli:")} </span>
                       <CitedText text={competitor.differentiation} references={references} />
                     </p>
                   </div>
@@ -230,21 +234,21 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
               })}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Rəqib məlumatı tapılmadı.</p>
+            <p className="text-sm text-muted-foreground">{t("Rəqib məlumatı tapılmadı.")}</p>
           )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Tövsiyələr</CardTitle>
+          <CardTitle>{t("Tövsiyələr")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ol className="space-y-3">
             {recommendations.map((item) => (
               <li key={item.title} className="flex gap-3 rounded-lg border p-4">
                 <Badge variant={PRIORITY[item.priority].variant} className="h-fit shrink-0">
-                  {PRIORITY[item.priority].label}
+                  {t(PRIORITY[item.priority].label)}
                 </Badge>
                 <div>
                   <p className="font-medium">{item.title}</p>
@@ -260,9 +264,9 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Mənbələr</CardTitle>
+          <CardTitle>{t("Mənbələr")}</CardTitle>
           <CardDescription>
-            Mənbəyi olmayan rəqəmlər “təxmini” kimi işarələnib və süni intellektin öz qiymətləndirməsidir.
+            {t("Mənbəyi olmayan rəqəmlər “təxmini” kimi işarələnib və süni intellektin öz qiymətləndirməsidir.")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -274,7 +278,7 @@ export function AnalysisResults({ analysis }: { analysis: Analysis }) {
             </ul>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Bu analizdə xarici mənbəyə istinad edilməyib; bütün rəqəmlər təxminidir.
+              {t("Bu analizdə xarici mənbəyə istinad edilməyib; bütün rəqəmlər təxminidir.")}
             </p>
           )}
         </CardContent>

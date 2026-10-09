@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { X } from "lucide-react";
+import { useT } from "@/components/i18n/locale-provider";
 
 interface DialogProps {
   open: boolean;
@@ -12,6 +13,7 @@ interface DialogProps {
 
 // Minimal modal: closes on Escape and on backdrop click.
 export function Dialog({ open, title, onClose, children }: DialogProps) {
+  const t = useT();
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -36,7 +38,7 @@ export function Dialog({ open, title, onClose, children }: DialogProps) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Bağla"
+            aria-label={t("Bağla")}
             className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <X className="size-5" />

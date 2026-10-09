@@ -1,20 +1,24 @@
+"use client";
+
 import { ArrowDownRight, ArrowUpRight, Minus, PiggyBank, TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 import type { computeKpis } from "@/lib/finance/dashboard";
 import { cn, formatAZN } from "@/lib/utils";
+import { useT } from "@/components/i18n/locale-provider";
 
 type Kpis = ReturnType<typeof computeKpis>;
 
 // Large headline figures shown beside the welcome text, as in the reference design.
 export function HeadlineStats({ kpis }: { kpis: Kpis }) {
+  const t = useT();
   const { current, change } = kpis;
 
   return (
     <dl className="flex flex-wrap gap-x-10 gap-y-4">
-      <Stat icon={TrendingUp} label="Bu ayın gəliri" value={current.income} change={change.income} goodWhen="up" />
-      <Stat icon={TrendingDown} label="Bu ayın xərcləri" value={current.expenses} change={change.expenses} goodWhen="down" />
+      <Stat icon={TrendingUp} label={t("Bu ayın gəliri")} value={current.income} change={change.income} goodWhen="up" />
+      <Stat icon={TrendingDown} label={t("Bu ayın xərcləri")} value={current.expenses} change={change.expenses} goodWhen="down" />
       <Stat
         icon={PiggyBank}
-        label="Xalis mənfəət"
+        label={t("Xalis mənfəət")}
         value={current.net_profit}
         change={change.net_profit}
         goodWhen="up"
@@ -35,6 +39,7 @@ interface StatProps {
 }
 
 function Stat({ icon: Icon, label, value, change, goodWhen, negative }: StatProps) {
+  const t = useT();
   const direction = change === null || change === 0 ? "flat" : change > 0 ? "up" : "down";
   const ChangeIcon = direction === "up" ? ArrowUpRight : direction === "down" ? ArrowDownRight : Minus;
   const tone =
@@ -52,7 +57,9 @@ function Stat({ icon: Icon, label, value, change, goodWhen, negative }: StatProp
         <dt className="mt-1.5 text-sm text-muted-foreground">{label}</dt>
         <p className={cn("mt-0.5 flex items-center gap-1 text-xs font-medium", tone)}>
           <ChangeIcon className="size-3.5" />
-          {change === null ? "müqayisə yoxdur" : `${change > 0 ? "+" : ""}${change}% ötən aya nisbətən`}
+          {change === null
+            ? t("müqayisə yoxdur")
+            : t("{change}% ötən aya nisbətən", { change: `${change > 0 ? "+" : ""}${change}` })}
         </p>
       </div>
     </div>

@@ -14,6 +14,7 @@ import {
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { formatAZN } from "@/lib/utils";
 import type { FinancialForecast } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 const SERIES_LABELS: Record<string, string> = { revenue: "Gəlir", costs: "Xərc" };
 
@@ -22,6 +23,7 @@ function compactAZN(value: number) {
 }
 
 export function ForecastChart({ forecast }: { forecast: FinancialForecast }) {
+  const t = useT();
   const data = forecast.monthly_projection;
 
   return (
@@ -31,7 +33,7 @@ export function ForecastChart({ forecast }: { forecast: FinancialForecast }) {
           <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
           <XAxis
             dataKey="month"
-            tickFormatter={(month: number) => `${month}-ci ay`}
+            tickFormatter={(month: number) => t("{month}-ci ay", { month })}
             tick={{ fill: CHART_COLORS.axis, fontSize: 12 }}
             tickLine={false}
             axisLine={{ stroke: CHART_COLORS.grid }}
@@ -45,12 +47,12 @@ export function ForecastChart({ forecast }: { forecast: FinancialForecast }) {
             width={44}
           />
           <Tooltip
-            formatter={(value, name) => [formatAZN(Number(value)), SERIES_LABELS[String(name)] ?? name]}
-            labelFormatter={(month) => `${month}-ci ay`}
+            formatter={(value, name) => [formatAZN(Number(value)), t(SERIES_LABELS[String(name)] ?? String(name))]}
+            labelFormatter={(month) => t("{month}-ci ay", { month: String(month) })}
             contentStyle={{ borderRadius: 8, borderColor: CHART_COLORS.grid, fontSize: 13 }}
           />
           <Legend
-            formatter={(value) => <span className="text-sm text-foreground">{SERIES_LABELS[String(value)] ?? value}</span>}
+            formatter={(value) => <span className="text-sm text-foreground">{t(SERIES_LABELS[String(value)] ?? String(value))}</span>}
             iconType="plainline"
           />
           {forecast.break_even_month !== null && (
@@ -58,7 +60,7 @@ export function ForecastChart({ forecast }: { forecast: FinancialForecast }) {
               x={forecast.break_even_month}
               stroke={CHART_COLORS.axis}
               strokeDasharray="4 4"
-              label={{ value: "Zərərsizlik", position: "insideTopRight", fill: CHART_COLORS.axis, fontSize: 12 }}
+              label={{ value: t("Zərərsizlik"), position: "insideTopRight", fill: CHART_COLORS.axis, fontSize: 12 }}
             />
           )}
           <Line

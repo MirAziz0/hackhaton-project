@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionProfile } from "@/lib/supabase/server";
 import type { Analysis } from "@/types/analysis";
 import type { Business } from "@/types/database";
+import { getLocale, getT } from "@/lib/i18n/server";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -38,11 +39,12 @@ async function storePdf(userId: string, buffer: Buffer) {
 }
 
 async function handle(request: Request) {
+  const t = await getT();
   const { supabase, user, profile } = await getSessionProfile();
-  if (!user || !profile) return fail("Davam etmək üçün daxil olun.", 401);
+  if (!user || !profile) return fail(t("Davam etmək üçün daxil olun."), 401);
 
   const form = await request.formData().catch(() => null);
-  if (!form) return fail("Sorğu düzgün deyil.");
+  if (!form) return fail(t("Sorğu düzgün deyil."));
   const source = field(form, "source", 20);
   const requestedSector = field(form, "sector", 30);
   const sector = TRACKS.some((track) => track.value === requestedSector) ? requestedSector : profile.track;
@@ -54,7 +56,7 @@ async function handle(request: Request) {
   if (source === "business") {
     const { data } = await supabase.from("businesses").select("*").eq("id", field(form, "business_id", 64)).maybeSingle();
     const business = data as Business | null;
-    if (!business) return fail("Seçilmiş biznes tapılmadı.", 404);
+    if (!business) return fail(t("Seçilmiş biznes tapılmadı."), 404);
     businessId = business.id;
     businessName = business.name;
     planText = planTextFromBusiness(business);
@@ -67,16 +69,16 @@ async function handle(request: Request) {
       products: field(form, "products", 1000),
     };
     if (input.name.length < 2 || input.idea.length < 20) {
-      return fail("Biznesin adını və ideyanı (ən azı 20 simvol) doldurun.");
+      return fail(t("Biznesin adını və ideyanı (ən azı 20 simvol) doldurun."));
     }
     businessName = input.name;
     planText = planTextFromForm(input);
   } else if (source === "pdf") {
     const file = form.get("file");
-    if (!(file instanceof File) || file.size === 0) return fail("PDF faylı seçin.");
-    if (file.size > MAX_PDF_BYTES) return fail("PDF faylı 4 MB-dan böyük olmamalıdır.");
+    if (!(file instanceof File) || file.size === 0) return fail(t("PDF faylı seçin."));
+    if (file.size > MAX_PDF_BYTES) return fail(t("PDF faylı 4 MB-dan böyük olmamalıdır."));
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-      return fail("Yalnız PDF formatı qəbul olunur.");
+      return fail(t("Yalnız PDF formatı qəbul olunur."));
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -85,19 +87,19 @@ async function handle(request: Request) {
       text = await extractPdfText(buffer);
     } catch (err) {
       console.error("[analysis] PDF parse failed:", err instanceof Error ? err.message : err);
-      return fail("PDF faylını oxumaq mümkün olmadı. Başqa fayl yoxlayın və ya formanı doldurun.");
+      return fail(t("PDF faylını oxumaq mümkün olmadı. Başqa fayl yoxlayın və ya formanı doldurun."));
     }
     if (text.length < 100) {
-      return fail("PDF-dən mətn oxumaq mümkün olmadı (skan edilmiş sənəd ola bilər). Formanı doldurun.");
+      return fail(t("PDF-dən mətn oxumaq mümkün olmadı (skan edilmiş sənəd ola bilər). Formanı doldurun."));
     }
-    businessName = field(form, "name", 100) || file.name.replace(/\.pdf$/i, "").slice(0, 100) || "Biznes planı";
+    businessName = field(form, "name", 100) || file.name.replace(/\.pdf$/i, "").slice(0, 100) || t("Biznes planı");
     planText = truncatePlan(text);
     await storePdf(user.id, buffer);
   } else {
-    return fail("Sorğu düzgün deyil.");
+    return fail(t("Sorğu düzgün deyil."));
   }
 
-  const payload = await runAnalysis({ supabase, profile, businessName, planText, sector });
+  const payload = await runAnalysis({ supabase, profile, businessName, planText, sector, locale: await getLocale() });
 
   // Form and PDF inputs have no business yet, so create one to attach the analysis to.
   if (!businessId) {
@@ -108,7 +110,7 @@ async function handle(request: Request) {
       .single();
     if (error || !data) {
       console.error("[analysis] could not create the business:", error?.message);
-      return fail("Analizi yadda saxlamaq mümkün olmadı.", 500);
+      return fail(t("Analizi yadda saxlamaq mümkün olmadı."), 500);
     }
     businessId = data.id as string;
   }
@@ -120,7 +122,7 @@ async function handle(request: Request) {
     .single();
   if (saveError || !saved) {
     console.error("[analysis] could not save the analysis:", saveError?.message);
-    return fail("Analizi yadda saxlamaq mümkün olmadı.", 500);
+    return fail(t("Analizi yadda saxlamaq mümkün olmadı."), 500);
   }
 
   return NextResponse.json({ analysis: saved as Analysis, business: { id: businessId, name: businessName } });
@@ -131,7 +133,7 @@ export async function POST(request: Request) {
   try {
     return await handle(request);
   } catch (err) {
-    const { message, status } = toUserError(err);
+    const { message, status } = toUserError(err, await getT());
     return fail(message, status);
   }
 }

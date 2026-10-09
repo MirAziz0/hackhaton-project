@@ -26,6 +26,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { formatAZN } from "@/lib/utils";
 import type { FinancialForecast, Transaction } from "@/types/database";
+import { useT } from "@/components/i18n/locale-provider";
 
 interface DashboardClientProps {
   userName: string;
@@ -41,6 +42,7 @@ function normalise(transaction: Transaction): Transaction {
 }
 
 export function DashboardClient({ userName, businesses, business, initialTransactions, today }: DashboardClientProps) {
+  const t = useT();
   const router = useRouter();
   const [transactions, setTransactions] = useState(() => initialTransactions.map(normalise));
   const [dialog, setDialog] = useState<{ transaction: Transaction | null } | null>(null);
@@ -48,17 +50,17 @@ export function DashboardClient({ userName, businesses, business, initialTransac
   // Everything below is derived from `transactions`, so any add/edit/delete (including one
   // confirmed in the AI chat) updates the figures and charts immediately.
   const kpis = useMemo(() => computeKpis(transactions, business.financial_forecast, today), [transactions, business, today]);
-  const monthly = useMemo(() => monthlySeries(transactions, 6, today), [transactions, today]);
+  const monthly = useMemo(() => monthlySeries(transactions, 6, today, t), [transactions, today, t]);
   const forecast = useMemo(
-    () => forecastVsActual(transactions, business.financial_forecast, today),
-    [transactions, business, today],
+    () => forecastVsActual(transactions, business.financial_forecast, today, t),
+    [transactions, business, today, t],
   );
   const categories = useMemo(() => [...new Set(transactions.map((tx) => tx.category))], [transactions]);
   const expenses = useMemo(() => {
     const breakdown = categoryBreakdown(transactions, resolvePeriod("this_month", today)!);
     const colorOf = categoryColorMap(transactions.filter((tx) => tx.type === "expense").map((tx) => tx.category));
-    return { total: breakdown.total, slices: toCategorySlices(breakdown.categories, colorOf) };
-  }, [transactions, today]);
+    return { total: breakdown.total, slices: toCategorySlices(breakdown.categories, colorOf, t) };
+  }, [transactions, today, t]);
 
   async function addTransaction(input: TransactionInput) {
     const { data, error } = await createClient()
@@ -85,20 +87,20 @@ export function DashboardClient({ userName, businesses, business, initialTransac
     router.refresh();
   }
 
-  const month = monthLabel(monthKey(today));
+  const month = monthLabel(monthKey(today), t);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
         <div className="space-y-2">
-          <h1 className="text-4xl font-semibold tracking-tight">Xoş gəldiniz, {userName}.</h1>
+          <h1 className="text-4xl font-semibold tracking-tight">{t("Xoş gəldiniz, {name}.", { name: userName })}</h1>
           <div className="flex flex-wrap items-center gap-3 text-muted-foreground">
             <p>
-              <span className="font-medium text-foreground">{business.name}</span> · {month} üzrə göstəricilər
+              <span className="font-medium text-foreground">{business.name}</span> · {t("{month} üzrə göstəricilər", { month })}
             </p>
             {businesses.length > 1 && (
               <select
-                aria-label="Biznes seçin"
+                aria-label={t("Biznes seçin")}
                 value={business.id}
                 onChange={(e) => router.push(`/dashboard?business=${e.target.value}`)}
                 className="h-9 rounded-full border border-input bg-card px-3.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
@@ -120,8 +122,8 @@ export function DashboardClient({ userName, businesses, business, initialTransac
           <div className="grid gap-6 lg:grid-cols-5">
             <Card className="lg:col-span-3">
               <CardHeader>
-                <CardTitle>Aylıq gəlir və xərc</CardTitle>
-                <CardDescription>Son 6 ay, AZN</CardDescription>
+                <CardTitle>{t("Aylıq gəlir və xərc")}</CardTitle>
+                <CardDescription>{t("Son 6 ay, AZN")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <MonthlyBarChart data={monthly} />
@@ -130,9 +132,9 @@ export function DashboardClient({ userName, businesses, business, initialTransac
 
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Xərclərin bölgüsü</CardTitle>
+                <CardTitle>{t("Xərclərin bölgüsü")}</CardTitle>
                 <CardDescription>
-                  {month} · cəmi {formatAZN(expenses.total)}
+                  {t("{month} · cəmi {total}", { month, total: formatAZN(expenses.total) })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -144,13 +146,13 @@ export function DashboardClient({ userName, businesses, business, initialTransac
           <Card>
             <CardHeader className="flex-row flex-wrap items-start justify-between gap-4">
               <div className="space-y-1.5">
-                <CardTitle>Plan proqnozu və faktiki gəlir</CardTitle>
-                <CardDescription>Biznes planındakı aylıq gəlir proqnozu ilə real gəlirin müqayisəsi, AZN</CardDescription>
+                <CardTitle>{t("Plan proqnozu və faktiki gəlir")}</CardTitle>
+                <CardDescription>{t("Biznes planındakı aylıq gəlir proqnozu ilə real gəlirin müqayisəsi, AZN")}</CardDescription>
               </div>
               {kpis.forecast && (
                 <div className="w-56 space-y-1.5">
                   <div className="flex items-baseline justify-between text-sm">
-                    <span className="text-muted-foreground">Bu ayın hədəfi</span>
+                    <span className="text-muted-foreground">{t("Bu ayın hədəfi")}</span>
                     <span className="font-semibold tabular-nums">{kpis.forecast.progress_pct}%</span>
                   </div>
                   <Progress value={kpis.forecast.progress_pct} />
