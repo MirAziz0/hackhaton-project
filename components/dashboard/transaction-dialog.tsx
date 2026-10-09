@@ -33,8 +33,18 @@ const TYPES: { value: TransactionType; label: string }[] = [
 
 export function TransactionDialog({ transaction, today, categories, onClose, onSubmit }: TransactionDialogProps) {
   const [type, setType] = useState<TransactionType>(transaction?.type ?? "income");
-  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : "");
-  const [category, setCategory] = useState(transaction?.category ?? "");
+  // "Gəlir" and "Xərc" each keep their own amount and category, so switching between the two
+  // never carries one side's values over to the other.
+  const [drafts, setDrafts] = useState<Record<TransactionType, { amount: string; category: string }>>(() => {
+    const empty = { amount: "", category: "" };
+    const filled = transaction ? { amount: String(transaction.amount), category: transaction.category } : empty;
+    const initialType = transaction?.type ?? "income";
+    return { income: initialType === "income" ? filled : empty, expense: initialType === "expense" ? filled : empty };
+  });
+  const { amount, category } = drafts[type];
+  const setAmount = (value: string) => setDrafts((current) => ({ ...current, [type]: { ...current[type], amount: value } }));
+  const setCategory = (value: string) =>
+    setDrafts((current) => ({ ...current, [type]: { ...current[type], category: value } }));
   const [date, setDate] = useState(transaction?.date ?? today);
   const [note, setNote] = useState(transaction?.note ?? "");
   const [saving, setSaving] = useState(false);
@@ -85,13 +95,13 @@ export function TransactionDialog({ transaction, today, categories, onClose, onS
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="tx-amount">Məbləğ (₼)</Label>
+            <Label htmlFor="tx-amount">{type === "income" ? "Gəlir məbləği (₼)" : "Xərc məbləği (₼)"}</Label>
             <Input
               id="tx-amount"
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value.replace(/[^\d.,]/g, ""))}
-              placeholder="450"
+              placeholder={type === "income" ? "450" : "120"}
               autoFocus
               required
             />
