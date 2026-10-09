@@ -1,5 +1,7 @@
 # Growenta
 
+**Live demo:** https://hackhaton-project-seven.vercel.app/
+
 Growenta takes an entrepreneur in Azerbaijan from a one-sentence idea to a running business: a plan, a checked budget, a place to open, a brand, bookkeeping and people to work with. The interface is in English and Azerbaijani (ENG / AZ switch); the AI answers in the language you pick.
 
 ## The problem and the outcome
