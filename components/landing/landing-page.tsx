@@ -3,7 +3,6 @@ import {
   BarChart3,
   Building2,
   FileText,
-  Landmark,
   LayoutDashboard,
   Lightbulb,
   MapPin,
@@ -46,7 +45,6 @@ const STEPS = [
 
 const AUDIENCE: { icon: LucideIcon; title: string; text: string }[] = [
   { icon: Rocket, title: "Sahibkarlar", text: "İdeyadan işlək biznesə qədər hər addımda yol göstərən köməkçi." },
-  { icon: Landmark, title: "Banklar", text: "KOB kredit müraciətlərini hazırlıq balı və mənbəli təhlillə daha sürətli qiymətləndirin." },
   { icon: Building2, title: "İnkubatorlar", text: "Startap planlarını eyni meyarlarla müqayisə edin və güclü komandaları tez seçin." },
 ];
 
@@ -164,8 +162,8 @@ export async function LandingPage() {
         </section>
 
         <section id="audience" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
-          <SectionHeading eyebrow={t("Kimlər üçün")} title={t("Sahibkarlar, banklar və inkubatorlar üçün")} />
-          <div className="mt-12 grid gap-5 lg:grid-cols-3">
+          <SectionHeading eyebrow={t("Kimlər üçün")} title={t("Sahibkarlar və inkubatorlar üçün")} />
+          <div className="mt-12 grid gap-5 lg:grid-cols-2">
             {AUDIENCE.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex gap-4 rounded-3xl border border-white/10 bg-white/[0.06] p-6">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">

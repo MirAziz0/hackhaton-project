@@ -4,6 +4,7 @@ import { generateJson } from "@/lib/ai/llm";
 import { analysisSystem, analysisUserPrompt } from "@/lib/ai/prompts";
 import { analysisSchema } from "@/lib/ai/schemas";
 import { webSearch } from "@/lib/ai/search";
+import { PLAN_SOURCE, enforceSources } from "@/lib/analysis/sources";
 import { trackLabel } from "@/lib/constants";
 import type { Locale } from "@/lib/i18n/config";
 import { createTranslator } from "@/lib/i18n/translate";
@@ -11,9 +12,7 @@ import type { AnalysisPayload, SourceReference } from "@/types/analysis";
 import type { MarketData, Profile } from "@/types/database";
 
 const SECTORS_WITH_DATA = ["cosmetics", "food", "clothing", "it_services"];
-const PLAN_SOURCE = "PLAN";
 const REGION_LABELS: Record<string, string> = { baku: "Bakı", regions: "Regionlar", online: "Onlayn" };
-const SOURCE_ID_PATTERN = /\[([MW]\d+)\]/g;
 
 interface AnalysisInput {
   supabase: SupabaseClient;
@@ -111,16 +110,5 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPayload
     sources: { figures, references: [], web_search_used: webResults.length > 0 },
   };
 
-  // Keep only the references that are actually cited, and drop citation markers for unknown ids.
-  const cleaned = JSON.parse(
-    JSON.stringify(payload).replace(SOURCE_ID_PATTERN, (marker, id: string) => (references.has(id) ? marker : "")),
-  ) as AnalysisPayload;
-
-  const cited = new Set<string>();
-  for (const match of JSON.stringify(cleaned).matchAll(SOURCE_ID_PATTERN)) cited.add(match[1]);
-  for (const item of [...figures, ...competitors]) if (item.source_id) cited.add(item.source_id);
-  cited.delete(PLAN_SOURCE);
-
-  cleaned.sources.references = [...references.values()].filter((reference) => cited.has(reference.id));
-  return cleaned;
+  return enforceSources(payload, references);
 }

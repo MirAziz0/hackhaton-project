@@ -132,13 +132,10 @@ export const en: Record<string, string> = {
   "Biznesi idarə edin": "Run the business",
   "Gəlir-xərci izləyin, köməkçidən məsləhət alın, tərəfdaş və təchizatçı tapın.":
     "Track income and expenses, get advice from the assistant, find partners and suppliers.",
-  "Sahibkarlar, banklar və inkubatorlar üçün": "For entrepreneurs, banks and incubators",
+  "Sahibkarlar və inkubatorlar üçün": "For entrepreneurs and incubators",
   Sahibkarlar: "Entrepreneurs",
   "İdeyadan işlək biznesə qədər hər addımda yol göstərən köməkçi.":
     "An assistant that guides every step from an idea to a running business.",
-  Banklar: "Banks",
-  "KOB kredit müraciətlərini hazırlıq balı və mənbəli təhlillə daha sürətli qiymətləndirin.":
-    "Assess SME loan applications faster with a readiness score and sourced analysis.",
   İnkubatorlar: "Incubators",
   "Startap planlarını eyni meyarlarla müqayisə edin və güclü komandaları tez seçin.":
     "Compare startup plans by the same criteria and spot strong teams quickly.",

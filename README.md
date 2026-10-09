@@ -6,7 +6,7 @@ Growenta takes an entrepreneur in Azerbaijan from a one-sentence idea to a runni
 
 ## The problem and the outcome
 
-Someone starting a small business here needs a plan, a realistic budget, a location, a brand and a way to track money. Today that means a consultant, a spreadsheet and a general-purpose chatbot that knows nothing about the business and invents its numbers. Banks and incubators have the mirror problem: every application arrives in a different shape and takes hours to assess.
+Someone starting a small business here needs a plan, a realistic budget, a location, a brand and a way to track money. Today that means a consultant, a spreadsheet and a general-purpose chatbot that knows nothing about the business and invents its numbers. Incubators have the mirror problem: every startup plan arrives in a different shape and takes hours to compare.
 
 | Section | What the user gets |
 |---|---|
@@ -16,7 +16,7 @@ Someone starting a small business here needs a plan, a realistic budget, a locat
 | Dashboard | Income and expense tracking, charts, plan versus actual, and an assistant that records transactions from plain language and answers questions with exact numbers |
 | Network | Five recommended entrepreneurs with a reason for each, plus realtime 1:1 chat |
 
-The same Analysis report is what a bank or incubator would read to compare SME applications by one set of criteria.
+The same Analysis report is what an incubator would read to compare startup plans by one set of criteria.
 
 ## What the AI does, and what it is not trusted with
 
@@ -40,7 +40,7 @@ Every agent returns JSON validated with Zod and retries once with the validation
 npm test
 ```
 
-16 tests in `tests/` cover the parts that must never be wrong: the finance functions behind every number the assistant quotes, forecast break-even, period parsing, coordinate checks, the non-AI matching order, date and money formatting, and the English dictionary (no empty text, no placeholder the source does not supply). `npm run lint` and `npx tsc --noEmit` are clean.
+21 tests in `tests/` cover the parts that must never be wrong: the finance functions behind every number the assistant quotes, forecast break-even, period parsing, coordinate checks, the non-AI matching order, date and money formatting, and the English dictionary (no empty text, no placeholder the source does not supply). `tests/ai-guards.test.ts` feeds the code deliberately wrong model output (a made-up period, broken tool arguments, a negative amount, citations to sources that were never provided) and checks that each is caught. None of the tests call an AI service. `npm run lint` and `npx tsc --noEmit` are clean.
 
 There is no automated scoring of the AI's writing yet. Plan and analysis quality has only been checked by hand on the demo business.
 
@@ -92,7 +92,7 @@ This comparison is by design, not a measured study: there has been no side-by-si
 
 The assistant is the high-volume feature, so it runs on a cheaper model (`LLM_ASSISTANT_MODEL`); plan and analysis keep the stronger one (`LLM_MODEL`).
 
-**Next step.** Load real market data for the four covered sectors, then pilot with a small group of entrepreneurs and one bank or incubator, comparing the readiness score with their own assessment of the same plans.
+**Next step.** Load real market data for the four covered sectors, then pilot with a small group of entrepreneurs and one incubator, comparing the readiness score with their own assessment of the same plans.
 
 ## What is different
 
@@ -100,7 +100,7 @@ The assistant is the high-volume feature, so it runs on a cheaper model (`LLM_AS
 - Arithmetic is never delegated to the model, and every market figure is either sourced or labelled.
 - The plan does not end as a document: the dashboard tracks real income against the forecast the Studio produced.
 - Local by default: Azerbaijani and English, AZN, Baku districts and regional cities with fixed coordinates.
-- One report serves both sides, the entrepreneur and the bank or incubator assessing them.
+- One report serves both sides, the entrepreneur and the incubator assessing them.
 
 ## Setup
 
