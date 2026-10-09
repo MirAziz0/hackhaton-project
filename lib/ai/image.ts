@@ -10,10 +10,10 @@ type ImageShape = "square" | "wide";
 const TIMEOUT_MS = 100_000;
 
 // Single entry point for image generation so the provider can be swapped via IMAGE_PROVIDER
-// ("gemini" or "openai"). Returns null when no key is configured or the request fails;
+// ("openai" by default, or "gemini"). Returns null when no key is configured or the request fails;
 // callers fall back to placeholders, so the app keeps working without an image API.
 export async function generateImage(prompt: string, shape: ImageShape = "square"): Promise<GeneratedImage | null> {
-  const provider = (process.env.IMAGE_PROVIDER || "gemini").toLowerCase();
+  const provider = (process.env.IMAGE_PROVIDER || "openai").toLowerCase();
 
   try {
     if (provider === "gemini") {
