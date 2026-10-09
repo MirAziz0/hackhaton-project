@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { DemoButton } from "@/components/landing/demo-button";
+import { LandingBackground } from "@/components/landing/landing-background";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { APP_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -51,7 +52,8 @@ const CTA_PRIMARY = "glass-button glass-button-primary h-13 px-8 text-sm";
 
 export function LandingPage() {
   return (
-    <div className="landing-backdrop min-h-screen text-white">
+    <div className="landing-backdrop relative isolate min-h-screen text-white">
+      <LandingBackground />
       {/* Floating glass bar that stays at the top while the page scrolls. */}
       <header className="sticky top-4 z-40 px-4 lg:px-10">
         <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2.5 pl-3 pr-2.5">
