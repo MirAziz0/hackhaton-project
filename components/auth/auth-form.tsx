@@ -95,7 +95,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     <div className="flex flex-1 flex-col">
       <div className="mx-auto my-auto w-full max-w-sm py-10">
         <div className="space-y-3 text-center">
-          <h2 className="font-display text-5xl leading-tight tracking-tight text-foreground">
+          <h2 className="font-display text-4xl leading-tight sm:text-5xl tracking-tight text-foreground">
             {isLogin ? t("Xoş gəlmisiniz") : t("Hesab yaradın")}
           </h2>
           <p className="text-sm text-muted-foreground">

@@ -57,22 +57,22 @@ export async function LandingPage() {
       <LandingBackground />
       {/* Floating glass bar that stays at the top while the page scrolls. */}
       <header className="sticky top-4 z-40 px-4 lg:px-10">
-        <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full py-2.5 pl-3 pr-2.5">
+        <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between gap-2 rounded-full py-2.5 pl-3 pr-2.5 sm:gap-4">
         <Link href="/" className="flex items-center gap-2.5" aria-label={APP_NAME}>
           <LogoMark />
-          <span className="text-xl font-semibold tracking-tight">
+          <span className="hidden text-xl font-semibold tracking-tight min-[400px]:inline">
             <BrandName dark />
           </span>
         </Link>
 
         <LandingNav />
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitch variant="dark" />
           <Link href="/login" className="glass-button hidden h-11 px-5 text-sm sm:inline-flex">
             {t("Daxil ol")}
           </Link>
-          <Link href="/register" className="glass-button glass-button-primary h-11 px-5 text-sm">
+          <Link href="/register" className="glass-button glass-button-primary h-10 px-4 text-sm sm:h-11 sm:px-5">
             {t("Qeydiyyat")}
           </Link>
         </div>
@@ -80,13 +80,13 @@ export async function LandingPage() {
       </header>
 
       <main>
-        <section id="home" className="mx-auto grid scroll-mt-28 max-w-7xl items-center gap-12 px-6 pb-24 pt-10 lg:grid-cols-2 lg:px-10 lg:pt-16">
+        <section id="home" className="mx-auto grid scroll-mt-28 max-w-7xl items-center gap-12 px-5 pb-14 pt-8 sm:px-6 sm:pb-24 sm:pt-10 lg:grid-cols-2 lg:px-10 lg:pt-16">
           <div className="space-y-7">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/90">
               <Star className="size-4 fill-[#a78bfa] text-[#a78bfa]" />
               {t("Süni intellektlə işləyən biznes platforması")}
             </p>
-            <h1 className="text-5xl font-bold leading-[1.15] tracking-tight sm:text-6xl xl:text-7xl">
+            <h1 className="text-4xl font-bold leading-[1.15] tracking-tight min-[400px]:text-5xl sm:text-6xl xl:text-7xl">
               {t("İdeyadan")}
               {/* Padding below the baseline keeps the tails of "ğ" inside the clipped gradient. */}
               <span className="block bg-gradient-to-r from-[#c4b5fd] via-[#a5b4fc] to-[#67e8f9] bg-clip-text pb-3 text-transparent drop-shadow-[0_6px_28px_rgb(139_92_246/0.45)]">
@@ -131,7 +131,7 @@ export async function LandingPage() {
           </div>
         </section>
 
-        <section id="features" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
+        <section id="features" className="mx-auto max-w-7xl scroll-mt-28 px-5 py-12 sm:px-6 sm:py-20 lg:px-10">
           <SectionHeading eyebrow={t("İmkanlar")} title={t("Bir platformada bütün yol")} />
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {FEATURES.map(({ icon: Icon, title, text }) => (
@@ -146,7 +146,7 @@ export async function LandingPage() {
           </div>
         </section>
 
-        <section id="how" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
+        <section id="how" className="mx-auto max-w-7xl scroll-mt-28 px-5 py-12 sm:px-6 sm:py-20 lg:px-10">
           <SectionHeading eyebrow={t("Necə işləyir")} title={t("Üç addımda başlayın")} />
           <ol className="mt-12 grid gap-5 lg:grid-cols-3">
             {STEPS.map((step, index) => (
@@ -161,7 +161,7 @@ export async function LandingPage() {
           </ol>
         </section>
 
-        <section id="audience" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-20 lg:px-10">
+        <section id="audience" className="mx-auto max-w-7xl scroll-mt-28 px-5 py-12 sm:px-6 sm:py-20 lg:px-10">
           <SectionHeading eyebrow={t("Kimlər üçün")} title={t("Sahibkarlar və inkubatorlar üçün")} />
           <div className="mt-12 grid gap-5 lg:grid-cols-2">
             {AUDIENCE.map(({ icon: Icon, title, text }) => (
@@ -178,8 +178,8 @@ export async function LandingPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 pb-24 pt-8 lg:px-10">
-          <div className="rounded-[2rem] border border-white/15 bg-[linear-gradient(135deg,rgb(124_92_255/0.45),rgb(59_130_246/0.3))] px-8 py-14 text-center">
+        <section className="mx-auto max-w-7xl px-5 pb-14 pt-6 sm:px-6 sm:pb-24 sm:pt-8 lg:px-10">
+          <div className="rounded-[2rem] border border-white/15 bg-[linear-gradient(135deg,rgb(124_92_255/0.45),rgb(59_130_246/0.3))] px-5 py-10 text-center sm:px-8 sm:py-14">
             <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("İdeyanızı bu gün plana çevirin")}</h2>
             <p className="mx-auto mt-3 max-w-xl text-white/80">
               {t("Qeydiyyat bir dəqiqə çəkir və ilk biznes planınız bir neçə dəqiqəyə hazır olur.")}

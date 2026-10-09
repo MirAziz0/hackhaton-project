@@ -70,9 +70,9 @@ export function TopNav({ profile }: { profile: Profile }) {
   }
 
   return (
-    <header className="mx-auto flex max-w-[96rem] flex-wrap items-center gap-x-6 gap-y-3 px-5 py-5 lg:px-10">
+    <header className="mx-auto flex max-w-[96rem] flex-wrap items-center gap-x-3 gap-y-3 px-4 py-4 sm:gap-x-6 sm:px-5 sm:py-5 lg:px-10">
       <Link href="/" aria-label={t("Ana səhifə")}>
-        <Logo />
+        <Logo className="[&>span]:hidden sm:[&>span]:inline" />
       </Link>
 
       <nav
@@ -121,9 +121,9 @@ export function TopNav({ profile }: { profile: Profile }) {
         })}
       </nav>
 
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <LanguageSwitch />
-        <Link href="/studio" className={buttonVariants({ className: "h-11 px-5" })}>
+        <Link href="/studio" className={buttonVariants({ className: "h-11 px-3.5 sm:px-5" })}>
           <Plus />
           <span className="hidden sm:inline">{t("Yeni ideya")}</span>
         </Link>

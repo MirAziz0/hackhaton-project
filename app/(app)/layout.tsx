@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <ChatProvider currentUserId={profile.id}>
       <div className="app-backdrop min-h-screen">
         <TopNav profile={profile} />
-        <main className="mx-auto max-w-[96rem] px-5 pb-12 pt-2 lg:px-10">{children}</main>
+        <main className="mx-auto max-w-[96rem] px-4 pb-12 pt-2 sm:px-5 lg:px-10">{children}</main>
         <ChatWidget />
       </div>
     </ChatProvider>
