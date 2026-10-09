@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Plus } from "lucide-react";
@@ -18,11 +19,46 @@ const NAV_ITEMS = [
   { href: "/profile", label: "Profil" },
 ];
 
+// useLayoutEffect warns during server rendering; fall back to useEffect there.
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 // Top navigation for the signed-in area: logo, pill menu, quick action and the user.
 export function TopNav({ profile }: { profile: Profile }) {
   const pathname = usePathname();
   const router = useRouter();
   const profileHref = `/profile/${profile.id}`;
+
+  const navRef = useRef<HTMLElement>(null);
+  const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  // Position of the sliding highlight behind the active menu item.
+  const [pill, setPill] = useState<{ left: number; width: number } | null>(null);
+  // The first placement must not animate, otherwise the pill would slide in from the corner.
+  const [animate, setAnimate] = useState(false);
+  // The clicked item is highlighted at once, before the new page has finished loading.
+  const [pending, setPending] = useState<string | null>(null);
+
+  const routeActive = NAV_ITEMS.find(({ href }) => pathname === href || pathname.startsWith(`${href}/`))?.href ?? null;
+  const active = pending ?? routeActive;
+
+  useEffect(() => {
+    setPending(null);
+  }, [pathname]);
+
+  useIsomorphicLayoutEffect(() => {
+    const measure = () => {
+      const link = active ? linkRefs.current[active] : null;
+      setPill(link ? { left: link.offsetLeft, width: link.offsetWidth } : null);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [active]);
+
+  useEffect(() => {
+    if (!pill || animate) return;
+    const frame = requestAnimationFrame(() => setAnimate(true));
+    return () => cancelAnimationFrame(frame);
+  }, [pill, animate]);
 
   async function signOut() {
     await createClient().auth.signOut();
@@ -37,23 +73,41 @@ export function TopNav({ profile }: { profile: Profile }) {
       </Link>
 
       <nav
+        ref={navRef}
         aria-label="Əsas menyu"
-        className="order-last flex w-full gap-1 overflow-x-auto rounded-full bg-[#fbf7dc] p-1.5 shadow-card md:order-none md:w-auto"
+        className="relative order-last flex w-full gap-1 overflow-x-auto rounded-full bg-[#fbf7dc] p-1.5 shadow-card md:order-none md:w-auto"
       >
+        {pill && (
+          <span
+            aria-hidden
+            className={cn(
+              "bg-brand pointer-events-none absolute bottom-1.5 top-1.5 rounded-full shadow-[0_6px_14px_-6px_rgb(109_61_245/0.7)]",
+              animate && "transition-[left,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+            )}
+            style={{ left: pill.left, width: pill.width }}
+          />
+        )}
+
         {NAV_ITEMS.map(({ href: baseHref, label }) => {
-          const active = pathname === baseHref || pathname.startsWith(`${baseHref}/`);
+          const isActive = active === baseHref;
           // Link straight to the user's own profile instead of going through a redirect page.
           const href = baseHref === "/profile" ? profileHref : baseHref;
           return (
             <Link
               key={baseHref}
               href={href}
-              aria-current={active ? "page" : undefined}
+              ref={(element) => {
+                linkRefs.current[baseHref] = element;
+              }}
+              onClick={() => {
+                if (routeActive !== baseHref) setPending(baseHref);
+              }}
+              aria-current={routeActive === baseHref ? "page" : undefined}
               className={cn(
-                "whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium transition-colors",
-                active
-                  ? "bg-brand text-white shadow-[0_6px_14px_-6px_rgb(109_61_245/0.7)]"
-                  : "text-foreground/80 hover:bg-white/70 hover:text-foreground",
+                "relative z-10 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-300",
+                isActive ? "text-white" : "text-foreground/80 hover:bg-white/70 hover:text-foreground",
+                // Before the pill is measured (first paint), the active item carries the highlight itself.
+                isActive && !pill && "bg-brand",
               )}
             >
               {label}
