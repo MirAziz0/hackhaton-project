@@ -2,7 +2,7 @@
 
 A web platform that guides an entrepreneur from a raw business idea to a running business, with AI at every step. Built for the "AI Enterprise Solutions" hackathon track. The UI is in Azerbaijani; code and comments are in English.
 
-> Status: **Phases 1-3** are implemented (setup, schema, auth, onboarding, Idea Studio with branding images, Business Analysis). Dashboard and Network pages are placeholders until their phases land.
+> Status: **Phases 1-4** are implemented (setup, schema, auth, onboarding, Idea Studio with branding images, Business Analysis, Dashboard with the AI assistant). The Network page is a placeholder until Phase 5.
 
 ## Setup
 
@@ -57,16 +57,17 @@ app/
   api/auth/register          Creates confirmed users (no email verification step)
   api/studio, api/branding   Idea Studio agent and branding image generation
   api/analysis               Business Analysis agent (saved business, form or PDF upload)
+  api/assistant              Dashboard assistant: streaming tool-use loop
   onboarding/                7-step questionnaire, saved to profiles
   (app)/                     Authenticated shell: sidebar + chat widget
     studio, analysis, dashboard, network, profile/[id]
 components/
   ui/                        shadcn-style primitives
-  auth/, onboarding/, layout/, chat/, studio/, analysis/
+  auth/, onboarding/, layout/, chat/, studio/, analysis/, dashboard/
 lib/
   supabase/                  browser, server, admin and middleware clients
   ai/                        prompts, Zod schemas, LLM helper, Studio and Branding agents, image generation
-  finance/                   forecast arithmetic (done in code, not by the LLM)
+  finance/                   forecast and dashboard arithmetic (done in code, not by the LLM)
   analysis/                  plan-to-text helpers and PDF text extraction
   places.ts                  known locations with fixed map coordinates
   constants.ts               tracks, stages, budgets, locations (Azerbaijani labels)
@@ -86,6 +87,11 @@ middleware.ts                refreshes the session and guards routes
 | Idea Studio | Studio agent (`lib/ai/studio.ts`) | Asks 2-3 clarifying questions, then writes the plan, cost items, 12-month revenue estimate, location picks, names and slogans | Totals, monthly projection and break-even (`lib/finance/forecast.ts`); map coordinates from a fixed list (`lib/places.ts`) |
 | Branding | Branding agent (`lib/ai/branding.ts`) | Generates 2 logos and a banner from prompts built out of the plan | Stores images in Supabase Storage; falls back to SVG placeholders when no image API is available |
 | Business Analysis | Analysis agent (`lib/ai/analysis.ts`) | Scores investment readiness and market fit, writes SWOT, budget check, competitors and recommendations, citing numbered sources | Selects `market_data` rows by sector, runs `webSearch`, validates every cited source id, takes market figures from the database row, and labels unsourced numbers "təxmini" |
+| Dashboard | Dashboard assistant (`app/api/assistant`, `lib/ai/assistant-tools.ts`) | Chooses a tool, then explains the result in Azerbaijani; parses transactions from natural language | Every sum, percentage, comparison and what-if scenario (`lib/finance/dashboard.ts`); a parsed transaction is saved only after the user confirms it on a card |
+
+### How the dashboard assistant stays out of the math
+
+The assistant has six tools: `get_summary`, `get_expenses_by_category`, `compare_periods`, `get_monthly_trend`, `simulate_price_change` and `add_transaction`. The route handler runs a streaming loop: the model picks a tool, TypeScript computes the result from the business's transactions, and the model turns that result into a short answer. `add_transaction` never writes to the database; it returns a proposal that the interface shows as an "Əlavə edilsin?" card, and the row is inserted only when the user confirms. KPIs and charts are derived from the same functions on the client, so they update as soon as a transaction changes.
 
 ### How sources are enforced
 

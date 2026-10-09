@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen">
       <Sidebar profile={profile} />
       <main className="min-h-screen pl-64">
-        <div className="mx-auto max-w-7xl px-8 py-8">{children}</div>
+        <div className="mx-auto max-w-[90rem] px-8 py-8">{children}</div>
       </main>
       <ChatWidget />
     </div>
