@@ -76,13 +76,20 @@
   background-image: linear-gradient(135deg, #6d3df5 0%, #9b4dfa 60%, #c85cf0 100%);
 }
 
-/* Soft page backdrop for the signed-in area: lavender top-right, mint at the bottom. */
+/* Page backdrop for the signed-in area: a blue light falling in from the top right (two soft
+   glows crossed by faint diagonal beams) over a neutral surface, with a mint tint at the bottom.
+   The light belongs to the top of the page, so it scrolls away with the content. */
 @utility app-backdrop {
   background-color: #eef0f5;
   background-image:
-    radial-gradient(70rem 36rem at 100% 0%, #ead9ff 0%, transparent 62%),
+    linear-gradient(118deg, transparent 52%, rgb(191 219 254 / 0.55) 64%, transparent 74%),
+    linear-gradient(118deg, transparent 70%, rgb(147 197 253 / 0.4) 80%, transparent 90%),
+    radial-gradient(58rem 26rem at 88% -6%, rgb(96 165 250 / 0.6) 0%, transparent 68%),
+    radial-gradient(44rem 22rem at 56% -12%, rgb(186 215 255 / 0.7) 0%, transparent 70%),
     radial-gradient(64rem 40rem at 55% 100%, #c9f3df 0%, transparent 60%);
-  background-attachment: fixed;
+  background-size: 100% 34rem, 100% 34rem, 100% 40rem, 100% 40rem, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: top, top, top, top, bottom;
 }
 
 /* Finely striped fill for progress bars; the bar colour comes from currentColor. */
